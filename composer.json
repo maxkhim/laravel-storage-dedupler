@@ -1,0 +1,28 @@
+{
+  "name": "maxkhim/unique-file-storage",
+  "description": "Модуль хранения уникальных файлов",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Khimusov Maxim",
+      "email": "maxkhim@yandex.ru",
+      "role": "Creator"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "spatie/laravel-package-tools": "^1.15.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maxkhim\\UniqueFileStorage\\": "src"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Maxkhim\\UniqueFileStorage\\Providers\\UniqueFileStorageServiceProvider"
+      ]
+    }
+  }
+}
