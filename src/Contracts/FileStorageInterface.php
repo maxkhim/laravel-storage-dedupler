@@ -10,13 +10,31 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 interface FileStorageInterface
 {
     // Основной метод для любого источника файлов
-    public function store(FileSourceInterface $fileSource, Model $model, array $options = []): ?UniqueUploadedFileToModel;
+    public function store(
+        FileSourceInterface $fileSource,
+        Model $model,
+        array $options = []
+    ): ?UniqueUploadedFileToModel;
 
     // Удобные методы для различных источников
-    public function storeFromUploadedFile(UploadedFile $file, Model $model, array $options = []): ?UniqueUploadedFileToModel;
+    public function storeFromUploadedFile(
+        UploadedFile $file,
+        Model $model,
+        array $options = []
+    ): ?UniqueUploadedFileToModel;
     public function storeFromPath(string $path, Model $model, array $options = []): ?UniqueUploadedFileToModel;
-    public function storeFromStream($stream, string $filename, Model $model, array $options = []): ?UniqueUploadedFileToModel;
-    public function storeFromContent(string $content, string $filename, Model $model, array $options = []): ?UniqueUploadedFileToModel;
+    public function storeFromStream(
+        $stream,
+        string $filename,
+        Model $model,
+        array $options = []
+    ): ?UniqueUploadedFileToModel;
+    public function storeFromContent(
+        string $content,
+        string $filename,
+        Model $model,
+        array $options = []
+    ): ?UniqueUploadedFileToModel;
 
     // Методы для работы с существующими файлами
     public function attach(string $fileHash, Model $model, array $pivotAttributes = []): ?UniqueUploadedFileToModel;

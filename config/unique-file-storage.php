@@ -21,7 +21,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public/unique-files'),
-            'url' => env('APP_URL').'/storage/unique-files',
+            'url' => env('APP_URL') . '/storage/unique-files',
             'visibility' => 'public',
         ],
         's3' => [
@@ -40,5 +40,24 @@ return [
     'optimization' => [
         'stream_upload' => true,
         'chunk_size' => 1024 * 1024, // 1MB chunks для больших файлов
+    ],
+    'api' => [
+        'enabled' => true,
+        'middleware' => ['api'],
+        'prefix' => 'api/unique-file-storage/v1/files',
+        'max_file_size' => 102400, // 100MB в килобайтах
+        'allowed_mime_types' => [
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'application/pdf',
+            'text/plain',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+    ],
+    'download' => [
+        'chunk_size' => 1048576, // 1MB для потоковой передачи
+        'cache_control' => 'public, max-age=31536000',
     ],
 ];

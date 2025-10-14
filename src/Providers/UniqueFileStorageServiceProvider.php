@@ -2,9 +2,10 @@
 
 namespace Maxkhim\UniqueFileStorage\Providers;
 
-
 use Illuminate\Filesystem\Filesystem;
 use Maxkhim\UniqueFileStorage\Commands\CheckUniqueFileStorageCommand;
+use Maxkhim\UniqueFileStorage\Commands\CleanupFilesCommand;
+use Maxkhim\UniqueFileStorage\Commands\FileStorageStatsCommand;
 use Maxkhim\UniqueFileStorage\Contracts\FileStorageInterface;
 use Maxkhim\UniqueFileStorage\Services\FileStorageService;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -53,13 +54,7 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
             );
         }
     }
-/*
-    public function register()
-    {
-        $this->app->singleton(FileStorageInterface::class, FileStorageService::class);
-        $this->app->bind('unique-file-storage', FileStorageInterface::class);
-    }
-*/
+
     /**
      * Настраивает пакет с помощью Laravel Package Tools.
      *
@@ -107,7 +102,8 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
      * Выполняется после регистрации пакета.
      * Пока не содержит реализации.
      */
-    public function packageRegistered(): void {
+    public function packageRegistered(): void
+    {
         $this->app->singleton(FileStorageInterface::class, FileStorageService::class);
         $this->app->bind('unique-file-storage', FileStorageInterface::class);
         $this->configureDBConnection();
@@ -154,6 +150,8 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
     {
         return [
             CheckUniqueFileStorageCommand::class,
+            CleanupFilesCommand::class,
+            FileStorageStatsCommand::class,
         ];
     }
 
