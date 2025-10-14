@@ -5,6 +5,8 @@ namespace Maxkhim\UniqueFileStorage\Providers;
 
 use Illuminate\Filesystem\Filesystem;
 use Maxkhim\UniqueFileStorage\Commands\CheckUniqueFileStorageCommand;
+use Maxkhim\UniqueFileStorage\Contracts\FileStorageInterface;
+use Maxkhim\UniqueFileStorage\Services\FileStorageService;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -34,6 +36,7 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
      */
     protected function configureDBConnection(): void
     {
+
         if (is_null(config('database.connections.unique_file_storage'))) {
             config(
                 [
@@ -50,7 +53,13 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
             );
         }
     }
-
+/*
+    public function register()
+    {
+        $this->app->singleton(FileStorageInterface::class, FileStorageService::class);
+        $this->app->bind('unique-file-storage', FileStorageInterface::class);
+    }
+*/
     /**
      * Настраивает пакет с помощью Laravel Package Tools.
      *
@@ -78,7 +87,7 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
         $configFileName = $package->shortName();
 
         if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
-            $package->hasConfigFile();
+            $package->hasConfigFile($configFileName);
         }
 
         if (file_exists($package->basePath('/../database/migrations'))) {
@@ -92,15 +101,17 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
         if (file_exists($package->basePath('/../resources/views'))) {
             $package->hasViews(static::$viewNamespace);
         }
-
-        $this->configureDBConnection();
     }
 
     /**
      * Выполняется после регистрации пакета.
      * Пока не содержит реализации.
      */
-    public function packageRegistered(): void {}
+    public function packageRegistered(): void {
+        $this->app->singleton(FileStorageInterface::class, FileStorageService::class);
+        $this->app->bind('unique-file-storage', FileStorageInterface::class);
+        $this->configureDBConnection();
+    }
 
     /**
      * Выполняется после загрузки пакета.

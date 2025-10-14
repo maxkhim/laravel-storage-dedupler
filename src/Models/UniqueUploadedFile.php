@@ -3,13 +3,16 @@
 namespace Maxkhim\UniqueFileStorage\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class UniqueUploadedFile extends Model
 {
     protected $table = 'unique_uploaded_files';
+
     protected $keyType = 'string';
     public $incrementing = false;
+    protected $connection = 'unique_file_storage';
     protected $fillable = [
         'id', // SHA1 хэш как первичный ключ
         'sha1_hash',
@@ -27,8 +30,21 @@ class UniqueUploadedFile extends Model
         'size' => 'integer',
     ];
 
-    public function uniqueFileStorage(): MorphTo
+    /**
+     * Связь с полиморфной таблицей
+     */
+    public function uploadableModels(): HasMany
     {
-        return $this->morphTo('unique_file_storage');
+        return $this->hasMany(UniqueUploadedFileToModel::class, 'sha1_hash', 'id');
+    }
+
+    /**
+     * Получить все связанные модели через полиморфную связь
+     */
+    public function getUploadableModels()
+    {
+        return $this->uploadableModels->map(function ($relation) {
+            return $relation->uploadable;
+        });
     }
 }
