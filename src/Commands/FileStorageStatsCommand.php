@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Maxkhim\UniqueFileStorage\Commands;
+namespace Maxkhim\Dedupler\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFile;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Models\UniqueUploadedFile;
+use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
 use Illuminate\Support\Facades\DB;
 
 class FileStorageStatsCommand extends Command
@@ -17,7 +17,7 @@ class FileStorageStatsCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'unique-file-storage:files-stats';
+    protected $signature = 'dedupler:files-stats';
 
     /**
      * The console command description.
@@ -28,7 +28,7 @@ class FileStorageStatsCommand extends Command
 
     public function handle(): int
     {
-        DB::setDefaultConnection("unique_file_storage");
+        DB::setDefaultConnection("dedupler");
         $stats = $this->getStorageStats();
 
         $this->info('📊 File Storage Statistics / Статистика хранилища файлов');

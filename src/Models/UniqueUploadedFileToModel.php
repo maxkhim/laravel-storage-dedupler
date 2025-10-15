@@ -1,6 +1,6 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Models;
+namespace Maxkhim\Dedupler\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UniqueUploadedFileToModel extends Model
 {
     protected $table = 'unique_uploaded_files_to_models';
-    protected $connection = 'unique_file_storage';
+    protected $connection = 'dedupler';
     protected $fillable = [
         'sha1_hash',
         'uploadable_type',

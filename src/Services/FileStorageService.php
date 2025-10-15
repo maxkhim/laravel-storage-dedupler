@@ -1,20 +1,20 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Services;
+namespace Maxkhim\Dedupler\Services;
 
 use Illuminate\Support\Facades\Log;
-use Maxkhim\UniqueFileStorage\Contracts\FileSourceInterface;
-use Maxkhim\UniqueFileStorage\Contracts\FileStorageInterface;
-use Maxkhim\UniqueFileStorage\FileSources\ContentAdapter;
-use Maxkhim\UniqueFileStorage\FileSources\LocalFileAdapter;
-use Maxkhim\UniqueFileStorage\FileSources\StreamAdapter;
-use Maxkhim\UniqueFileStorage\FileSources\UploadedFileAdapter;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFile;
+use Maxkhim\Dedupler\Contracts\FileSourceInterface;
+use Maxkhim\Dedupler\Contracts\FileStorageInterface;
+use Maxkhim\Dedupler\FileSources\ContentAdapter;
+use Maxkhim\Dedupler\FileSources\LocalFileAdapter;
+use Maxkhim\Dedupler\FileSources\StreamAdapter;
+use Maxkhim\Dedupler\FileSources\UploadedFileAdapter;
+use Maxkhim\Dedupler\Models\UniqueUploadedFile;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileStorageService implements FileStorageInterface
@@ -23,7 +23,7 @@ class FileStorageService implements FileStorageInterface
 
     public function __construct()
     {
-        $this->config = config('unique-file-storage');
+        $this->config = config('dedupler');
     }
 
     /**

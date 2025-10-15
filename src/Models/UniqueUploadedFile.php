@@ -1,6 +1,6 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Models;
+namespace Maxkhim\Dedupler\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +12,7 @@ class UniqueUploadedFile extends Model
 
     protected $keyType = 'string';
     public $incrementing = false;
-    protected $connection = 'unique_file_storage';
+    protected $connection = 'dedupler';
     protected $fillable = [
         'id', // SHA1 хэш как первичный ключ
         'sha1_hash',

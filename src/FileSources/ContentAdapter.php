@@ -1,8 +1,8 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\FileSources;
+namespace Maxkhim\Dedupler\FileSources;
 
-use Maxkhim\UniqueFileStorage\Contracts\FileSourceInterface;
+use Maxkhim\Dedupler\Contracts\FileSourceInterface;
 class ContentAdapter implements FileSourceInterface
 {
     protected $content;

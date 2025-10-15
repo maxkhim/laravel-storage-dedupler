@@ -1,6 +1,6 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Contracts;
+namespace Maxkhim\Dedupler\Contracts;
 
 interface FileSourceInterface
 {

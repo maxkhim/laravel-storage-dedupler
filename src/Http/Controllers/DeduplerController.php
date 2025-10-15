@@ -1,6 +1,6 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Http\Controllers;
+namespace Maxkhim\Dedupler\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -8,12 +8,12 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Maxkhim\UniqueFileStorage\Facades\UniquieFileStorage as FileStorage;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFile;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Facades\UniquieFileStorage as FileStorage;
+use Maxkhim\Dedupler\Models\UniqueUploadedFile;
+use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class UniqueFileStorageController extends Controller
+class DeduplerController extends Controller
 {
     /**
      * Сохранить один файл
@@ -24,7 +24,7 @@ class UniqueFileStorageController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'file' => 'required|file|max:' . (config('unique-file-storage.max_file_size') ?? 102400),
+            'file' => 'required|file|max:' . (config('dedupler.max_file_size') ?? 102400),
             'model_type' => 'sometimes|string',
             'model_id' => 'sometimes|string',
             'disk' => 'sometimes|string',
@@ -112,7 +112,7 @@ class UniqueFileStorageController extends Controller
     {
         $request->validate([
             'files' => 'required|array',
-            'files.*' => 'required|file|max:' . (config('unique-file-storage.max_file_size') ?? 102400),
+            'files.*' => 'required|file|max:' . (config('dedupler.max_file_size') ?? 102400),
             'model_type' => 'sometimes|string',
             'model_id' => 'sometimes|string',
             'disk' => 'sometimes|string',

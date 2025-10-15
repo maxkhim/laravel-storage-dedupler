@@ -1,7 +1,7 @@
 {
-  "name": "maxkhim/unique-file-storage",
+  "name": "maxkhim/dedupler",
   "description": "Модуль хранения уникальных файлов",
-  "license": "proprietary",
+  "license": "MIT",
   "authors": [
     {
       "name": "Khimusov Maxim",
@@ -15,13 +15,13 @@
   },
   "autoload": {
     "psr-4": {
-      "Maxkhim\\UniqueFileStorage\\": "src"
+      "Maxkhim\\Dedupler\\": "src"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Maxkhim\\UniqueFileStorage\\Providers\\UniqueFileStorageServiceProvider"
+        "Maxkhim\\Dedupler\\Providers\\DeduplerServiceProvider"
       ]
     }
   }

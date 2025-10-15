@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Maxkhim\UniqueFileStorage\Http\Controllers\UniqueFileStorageController;
+use Maxkhim\Dedupler\Http\Controllers\DeduplerController;
 
-Route::group(['prefix' => '/api/unique-file-storage'], function () {
+Route::group(['prefix' => '/api/dedupler'], function () {
     Route::get(
         '/',
         function (\Illuminate\Http\Request $request) {
@@ -13,29 +13,29 @@ Route::group(['prefix' => '/api/unique-file-storage'], function () {
                 ->header('Content-Type', 'application/json');
         }
     )
-        ->name('api.unique-file-storage.index');
+        ->name('api.dedupler.index');
 
     Route::prefix('/v1/files')->name('unique-files.')->group(function () {
         // Загрузка одного файла
-        Route::post('/', [UniqueFileStorageController::class, 'store'])
+        Route::post('/', [DeduplerController::class, 'store'])
             ->name('store');
 
         // Загрузка нескольких файлов
-        Route::post('/batch', [UniqueFileStorageController::class, 'storeMultiple'])
+        Route::post('/batch', [DeduplerController::class, 'storeMultiple'])
             ->name('store-multiple');
 
         // Получение информации о файле
-        Route::get('/{hash}', [UniqueFileStorageController::class, 'show'])
+        Route::get('/{hash}', [DeduplerController::class, 'show'])
             ->name('show')
             ->where('hash', '[a-fA-F0-9]{40}');
 
         // Скачивание файла
-        Route::get('/{hash}/download', [UniqueFileStorageController::class, 'download'])
+        Route::get('/{hash}/download', [DeduplerController::class, 'download'])
             ->name('download')
             ->where('hash', '[a-fA-F0-9]{40}');
 
         // Прямая отдача файла (для встраивания)
-        Route::get('/{hash}/stream', [UniqueFileStorageController::class, 'stream'])
+        Route::get('/{hash}/stream', [DeduplerController::class, 'stream'])
             ->name('stream')
             ->where('hash', '[a-fA-F0-9]{40}');
     });

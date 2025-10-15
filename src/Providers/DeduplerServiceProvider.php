@@ -1,53 +1,53 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Providers;
+namespace Maxkhim\Dedupler\Providers;
 
 use Illuminate\Filesystem\Filesystem;
-use Maxkhim\UniqueFileStorage\Commands\CheckUniqueFileStorageCommand;
-use Maxkhim\UniqueFileStorage\Commands\CleanupFilesCommand;
-use Maxkhim\UniqueFileStorage\Commands\FileStorageStatsCommand;
-use Maxkhim\UniqueFileStorage\Contracts\FileStorageInterface;
-use Maxkhim\UniqueFileStorage\Services\FileStorageService;
+use Maxkhim\Dedupler\Commands\CheckUniqueFileStorageCommand;
+use Maxkhim\Dedupler\Commands\CleanupFilesCommand;
+use Maxkhim\Dedupler\Commands\FileStorageStatsCommand;
+use Maxkhim\Dedupler\Contracts\FileStorageInterface;
+use Maxkhim\Dedupler\Services\FileStorageService;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 /**
- * ServiceProvider для пакета unique-file-storage.
+ * ServiceProvider для пакета Dedupler.
  *
  * Наследуется от PackageServiceProvider из Laravel Package Tools,
  * обеспечивает настройку, регистрацию ресурсов, миграций, команд и т.д.
  */
-class UniqueFileStorageServiceProvider extends PackageServiceProvider
+class DeduplerServiceProvider extends PackageServiceProvider
 {
     /**
      * Имя пакета.
      */
-    public static string $name = 'unique-file-storage';
+    public static string $name = 'dedupler';
 
     /**
      * Пространство имен для шаблонов.
      */
-    public static string $viewNamespace = 'unique-file-storage';
+    public static string $viewNamespace = 'dedupler';
 
     /**
      * Настраивает подключение к базе данных, если оно не определено.
      *
-     * Использует конфигурацию из `unique-file-storage.db`.
+     * Использует конфигурацию из `dedupler.db`.
      */
     protected function configureDBConnection(): void
     {
 
-        if (is_null(config('database.connections.unique_file_storage'))) {
+        if (is_null(config('database.connections.dedupler'))) {
             config(
                 [
-                    'database.connections.unique_file_storage' => [
-                        'driver' => config("unique-file-storage.db.driver"),
-                        'host' => config("unique-file-storage.db.host"),
-                        'port' => config("unique-file-storage.db.port"),
-                        'database' => config("unique-file-storage.db.database"),
-                        'username' => config("unique-file-storage.db.username"),
-                        'password' => config("unique-file-storage.db.password"),
+                    'database.connections.dedupler' => [
+                        'driver' => config("dedupler.db.driver"),
+                        'host' => config("dedupler.db.host"),
+                        'port' => config("dedupler.db.port"),
+                        'database' => config("dedupler.db.database"),
+                        'username' => config("dedupler.db.username"),
+                        'password' => config("dedupler.db.password"),
                         'charset' => 'utf8',
                     ]
                 ]
@@ -105,7 +105,7 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->singleton(FileStorageInterface::class, FileStorageService::class);
-        $this->app->bind('unique-file-storage', FileStorageInterface::class);
+        $this->app->bind('dedupler', FileStorageInterface::class);
         $this->configureDBConnection();
     }
 
@@ -121,14 +121,14 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
             if (is_dir(__DIR__ . '/../../stubs')) {
                 foreach (app(Filesystem::class)->files(__DIR__ . '/../../stubs/') as $file) {
                     $this->publishes([
-                        $file->getRealPath() => base_path("stubs/unique-file-storage/{$file->getFilename()}"),
-                    ], 'unique-file-storage-stubs');
+                        $file->getRealPath() => base_path("stubs/dedupler/{$file->getFilename()}"),
+                    ], 'dedupler-stubs');
                 }
             }
         }
 
         // Тестирование
-        //Testable::mixin(new Testsunique-file-storage);
+        //Testable::mixin(new Testsdedupler);
     }
 
     /**
@@ -138,7 +138,7 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
      */
     protected function getAssetPackageName(): ?string
     {
-        return 'maxkhim/unique-file-storage';
+        return 'maxkhim/dedupler';
     }
 
     /**
@@ -175,7 +175,7 @@ class UniqueFileStorageServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            'create_unique_file_storage_table',
+            'create_dedupler_table',
         ];
     }
 }

@@ -1,17 +1,24 @@
-# Модуль контроля уникальности загружаемых файлов (unique-file-storage)
+# Dedupler
 
-Модуль для Laravel, который реализует загрузку файлов без дублирования
+### Stop storing duplicate files in your Laravel application.
 
-Пакет использует переменные окружения для настройки параметров. Все значения по умолчанию можно изменить, добавив соответствующие строки в файл `.env` вашего проекта.
+Tired of seeing the same file stored multiple times? When users upload duplicates, your storage bloats, backups grow, and data consistency suffers.
 
+**Dedupler** is an elegant Laravel package that solves this once and for all. It automatically prevents file duplicates using SHA-1 hashing and provides a beautiful polymorphic API to manage your attachments.
+
+## ✨ Why Dedupler?
+
+- 🚫 **Zero Duplicates** - Automatic deduplication using SHA-1 hashing
+- 🔗 **Polymorphic Magic** - Attach files to any model with ease
+- 💾 **Storage Efficient** - Save significant disk space
+- 🎯 **Simple API** - Intuitive methods for attachment management
+- 🗃️ **Flexible Storage** - Works with any Laravel storage disk
+- ⚡ **Laravel Native** - Seamlessly integrates with Laravel's ecosystem
 ## 🚀 Installation
 
 ```bash
-composer maxkhim/unique-file-storage
-```
-
-```bash
-php artisan migrate
+composer require maxkhim/dedupler
+php artisan migrate dedupler:install
 ```
 
 
@@ -46,7 +53,7 @@ php artisan config:clear
 
 ## ⚙️ Configuration
 
-Create and configure the package in `config/unique-file-storage.php`:
+Create and configure the package in `config/dedupler.php`:
 
 ```php
 return [

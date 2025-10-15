@@ -1,10 +1,10 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\Contracts;
+namespace Maxkhim\Dedupler\Contracts;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 interface FileStorageInterface

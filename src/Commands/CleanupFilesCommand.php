@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Maxkhim\UniqueFileStorage\Commands;
+namespace Maxkhim\Dedupler\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFile;
-use Maxkhim\UniqueFileStorage\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Models\UniqueUploadedFile;
+use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
 use Illuminate\Support\Facades\DB;
 
 class CleanupFilesCommand extends Command
@@ -17,7 +17,7 @@ class CleanupFilesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'unique-file-storage:files-cleanup
+    protected $signature = 'dedupler:files-cleanup
                             {--dry-run : Perform a dry run without deleting anything / Только просмотр без удаления}
                             {--force : Skip confirmation prompt / Пропустить подтверждение}
                             {--chunk=1000 : Number of records process at a time / Кол-во записей для обработки за раз}';
@@ -34,7 +34,7 @@ class CleanupFilesCommand extends Command
      */
     public function handle(): int
     {
-        DB::setDefaultConnection("unique_file_storage");
+        DB::setDefaultConnection("dedupler");
         $dryRun = $this->option('dry-run');
         $force = $this->option('force');
         $chunkSize = (int) $this->option('chunk');

@@ -1,9 +1,9 @@
 <?php
 
-namespace Maxkhim\UniqueFileStorage\FileSources;
+namespace Maxkhim\Dedupler\FileSources;
 
 use Illuminate\Http\UploadedFile;
-use Maxkhim\UniqueFileStorage\Contracts\FileSourceInterface;
+use Maxkhim\Dedupler\Contracts\FileSourceInterface;
 
 class UploadedFileAdapter implements FileSourceInterface
 {

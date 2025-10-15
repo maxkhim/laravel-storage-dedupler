@@ -44,7 +44,7 @@ return [
     'api' => [
         'enabled' => true,
         'middleware' => ['api'],
-        'prefix' => 'api/unique-file-storage/v1/files',
+        'prefix' => 'api/dedupler/v1/files',
         'max_file_size' => 102400, // 100MB в килобайтах
         'allowed_mime_types' => [
             'image/jpeg',
