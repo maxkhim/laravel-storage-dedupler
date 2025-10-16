@@ -6,26 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UniqueUploadedFileToModel extends Model
+class UniqueFileToModel extends Model
 {
-    protected $table = 'unique_uploaded_files_to_models';
+    protected $table = 'dedupler_unique_files_to_models';
     protected $connection = 'dedupler';
     protected $fillable = [
         'sha1_hash',
-        'uploadable_type',
-        'uploadable_id',
+        'deduplable_type',
+        'deduplable_id',
         'status',
         'original_name',
     ];
 
     protected $casts = [
-        'uploadable_id' => 'string',
+        'deduplable_id' => 'string',
     ];
 
     /**
      * Полиморфная связь с моделями
      */
-    public function uploadable(): MorphTo
+    public function deduplable(): MorphTo
     {
         return $this->morphTo();
     }
@@ -35,7 +35,7 @@ class UniqueUploadedFileToModel extends Model
      */
     public function file(): BelongsTo
     {
-        return $this->belongsTo(UniqueUploadedFile::class, 'sha1_hash', 'id');
+        return $this->belongsTo(UniqueFile::class, 'sha1_hash', 'id');
     }
 
     /**
@@ -43,7 +43,7 @@ class UniqueUploadedFileToModel extends Model
      */
     public function scopeForModelType($query, $modelType)
     {
-        return $query->where('uploadable_type', $modelType);
+        return $query->where('deduplable_type', $modelType);
     }
 
     /**

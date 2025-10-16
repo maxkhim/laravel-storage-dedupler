@@ -8,9 +8,10 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Maxkhim\Dedupler\Facades\UniquieFileStorage as FileStorage;
-use Maxkhim\Dedupler\Models\UniqueUploadedFile;
-use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Facades\Dedupler;
+use Maxkhim\Dedupler\Helpers\FormatingHelper;
+use Maxkhim\Dedupler\Models\UniqueFile;
+use Maxkhim\Dedupler\Models\UniqueFileToModel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeduplerController extends Controller
@@ -51,7 +52,7 @@ class DeduplerController extends Controller
 
             // Сохраняем файл
             if ($model) {
-                $fileRelation = FileStorage::storeFromUploadedFile(
+                $fileRelation = Dedupler::storeFromUploadedFile(
                     $file,
                     $model,
                     [
@@ -69,7 +70,7 @@ class DeduplerController extends Controller
                 };
                 $temporaryModel->id = uniqid('temp_', true);
 
-                $fileRelation = FileStorage::storeFromUploadedFile(
+                $fileRelation = Dedupler::storeFromUploadedFile(
                     $file,
                     $temporaryModel,
                     [
@@ -141,7 +142,7 @@ class DeduplerController extends Controller
             foreach ($files as $key => $file) {
                 try {
                     if ($model) {
-                        $fileRelation = FileStorage::storeFromUploadedFile(
+                        $fileRelation = Dedupler::storeFromUploadedFile(
                             $file,
                             $model,
                             [
@@ -158,7 +159,7 @@ class DeduplerController extends Controller
                         };
                         $temporaryModel->id = uniqid('temp_' . $key . '_', true);
 
-                        $fileRelation = FileStorage::storeFromUploadedFile(
+                        $fileRelation = Dedupler::storeFromUploadedFile(
                             $file,
                             $temporaryModel,
                             [
@@ -212,7 +213,7 @@ class DeduplerController extends Controller
     public function show(string $hash): JsonResponse
     {
         try {
-            $file = UniqueUploadedFile::query()->find($hash);
+            $file = UniqueFile::query()->find($hash);
 
             if (!$file) {
                 return response()->json([
@@ -221,8 +222,8 @@ class DeduplerController extends Controller
             }
 
             // Получаем информацию о связанных моделях
-            $relations = UniqueUploadedFileToModel::where('sha1_hash', $hash)->get();
-            $modelCounts = $relations->groupBy('uploadable_type')->map->count();
+            $relations = UniqueFileToModel::query()->where('sha1_hash', $hash)->get();
+            $modelCounts = $relations->groupBy('deduplable_type')->map->count();
 
             $fileInfo = [
                 'hash' => $file->id,
@@ -237,7 +238,7 @@ class DeduplerController extends Controller
                 'size_human' => $this->formatBytes($file->size),
                 'disk' => $file->disk,
                 'status' => $file->status,
-                'url' => FileStorage::getUrl($file->id),
+                'url' => Dedupler::getUrl($file->id),
                 'created_at' => $file->created_at?->toISOString(),
                 'updated_at' => $file->updated_at?->toISOString(),
                 'relations_count' => $relations->count(),
@@ -245,8 +246,8 @@ class DeduplerController extends Controller
                 'relations' => $relations->map(function ($relation) {
                     return [
                         'id' => $relation->id,
-                        'uploadable_type' => $relation->uploadable_type,
-                        'uploadable_id' => $relation->uploadable_id,
+                        'deduplable_type' => $relation->deduplable_type,
+                        'deduplable_id' => $relation->deduplable_id,
                         'status' => $relation->status,
                         'original_name' => $relation->original_name,
                         'created_at' => $relation->created_at?->toISOString(),
@@ -277,7 +278,7 @@ class DeduplerController extends Controller
     public function download(string $hash): StreamedResponse|JsonResponse
     {
         try {
-            $file = UniqueUploadedFile::query()->find($hash);
+            $file = UniqueFile::query()->find($hash);
 
             if (!$file) {
                 return response()->json([
@@ -328,7 +329,7 @@ class DeduplerController extends Controller
     public function stream(string $hash): Response|JsonResponse|StreamedResponse
     {
         try {
-            $file = UniqueUploadedFile::query()->find($hash);
+            $file = UniqueFile::query()->find($hash);
 
             if (!$file) {
                 return response()->json([
@@ -380,7 +381,7 @@ class DeduplerController extends Controller
     /**
      * Форматирование ответа с информацией о файле
      */
-    private function formatFileResponse(UniqueUploadedFile $file, $relation = null): array
+    private function formatFileResponse(UniqueFile $file, $relation = null): array
     {
         return [
             'hash' => $file->id,
@@ -393,7 +394,7 @@ class DeduplerController extends Controller
             'size_human' => $this->formatBytes($file->size),
             'disk' => $file->disk,
             'status' => $file->status,
-            'url' => FileStorage::getUrl($file->id),
+            'url' => Dedupler::getUrl($file->id),
             'download_url' => route('unique-files.download', ['hash' => $file->id]),
             'stream_url' => route('unique-files.stream', ['hash' => $file->id]),
             'created_at' => $file->created_at?->toISOString(),
@@ -407,12 +408,6 @@ class DeduplerController extends Controller
      */
     private function formatBytes(int $bytes, int $precision = 2): string
     {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= pow(1024, $pow);
-
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return FormatingHelper::formatBytes($bytes, $precision);
     }
 }

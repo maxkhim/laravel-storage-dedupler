@@ -3,8 +3,8 @@
 namespace Maxkhim\Dedupler\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
-use Maxkhim\Dedupler\Services\FileStorageService;
+use Maxkhim\Dedupler\Models\UniqueFileToModel;
+use Maxkhim\Dedupler\Services\DeduplerService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -12,13 +12,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Фасад для работы с файлами в модуле dedupler.
  *
  * Предоставляет удобный способ доступа к функциям FileStorageInterface через статические вызовы.
- * @see FileStorageService
- * @method static UniqueUploadedFileToModel|null store(FileSourceInterface $fileSource, Model $model, array $options = [])
- * @method static UniqueUploadedFileToModel|null storeFromUploadedFile (UploadedFile $file, Model $model, array $options = [])
- * @method static UniqueUploadedFileToModel|null storeFromPath(string $path, Model $model, array $options = [])
- * @method static UniqueUploadedFileToModel|null storeFromStream($stream, string $filename, Model $model, array $options = [])
- * @method static UniqueUploadedFileToModel|null storeFromContent(string $content, string $filename, Model $model, array $options = [])
- * @method static UniqueUploadedFileToModel|null attach(string $fileHash, Model $model, array $pivotAttributes = [])
+ * @see DeduplerService
+ * @method static UniqueFileToModel|null store(FileSourceInterface $fileSource, Model $model, array $options = [])
+ * @method static UniqueFileToModel|null storeFromUploadedFile (UploadedFile $file, Model $model, array $options = [])
+ * @method static UniqueFileToModel|null storeFromPath(string $path, Model $model, array $options = [])
+ * @method static UniqueFileToModel|null storeFromStream($stream, string $filename, Model $model, array $options = [])
+ * @method static UniqueFileToModel|null storeFromContent(string $content, string $filename, Model $model, array $options = [])
+ * @method static UniqueFileToModel|null attach(string $fileHash, Model $model, array $pivotAttributes = [])
  * @method static bool detach(string $fileHash, Model $model)
  * @method static bool delete(string $fileHash, bool $force = false)
  * @method static bool exists(string $fileHash)
@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *
  * */
 
-class UniquieFileStorage extends Facade
+class Dedupler extends Facade
 {
     protected static function getFacadeAccessor()
     {

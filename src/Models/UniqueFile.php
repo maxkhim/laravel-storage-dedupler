@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class UniqueUploadedFile extends Model
+class UniqueFile extends Model
 {
-    protected $table = 'unique_uploaded_files';
+    protected $table = 'dedupler_unique_files';
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -33,9 +33,9 @@ class UniqueUploadedFile extends Model
     /**
      * Связь с полиморфной таблицей
      */
-    public function uploadableModels(): HasMany
+    public function deduplableModels(): HasMany
     {
-        return $this->hasMany(UniqueUploadedFileToModel::class, 'sha1_hash', 'id');
+        return $this->hasMany(UniqueFileToModel::class, 'sha1_hash', 'id');
     }
 
     /**
@@ -43,8 +43,8 @@ class UniqueUploadedFile extends Model
      */
     public function getUploadableModels()
     {
-        return $this->uploadableModels->map(function ($relation) {
-            return $relation->uploadable;
+        return $this->deduplableModels->map(function ($relation) {
+            return $relation->deduplable;
         });
     }
 }

@@ -10,7 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Maxkhim\Dedupler\Models\Article;
 
-class CheckUniqueFileStorageCommand extends Command
+class CheckDeduplerStorageCommand extends Command
 {
     /**
      * Имя команды
@@ -25,7 +25,7 @@ class CheckUniqueFileStorageCommand extends Command
      * @var string
      */
 
-    protected $description = 'Проверка корректности работы модуля UniqueFileStorage. Check the correctness of the package';
+    protected $description = 'Проверка корректности работы модуля Dedupler  / Check the correctness of the package';
 
     /**
      * Исполнение

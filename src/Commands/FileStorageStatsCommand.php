@@ -6,8 +6,9 @@ namespace Maxkhim\Dedupler\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Maxkhim\Dedupler\Models\UniqueUploadedFile;
-use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Helpers\FormatingHelper;
+use Maxkhim\Dedupler\Models\UniqueFile;
+use Maxkhim\Dedupler\Models\UniqueFileToModel;
 use Illuminate\Support\Facades\DB;
 
 class FileStorageStatsCommand extends Command
@@ -46,7 +47,7 @@ class FileStorageStatsCommand extends Command
         );
 
         // Disk usage breakdown
-        $diskUsage = DB::table('unique_uploaded_files')
+        $diskUsage = DB::table('dedupler_unique_files')
             ->select('disk', DB::raw('COUNT(*) as file_count'), DB::raw('SUM(size) as total_size'))
             ->groupBy('disk')
             ->get();
@@ -66,7 +67,7 @@ class FileStorageStatsCommand extends Command
         }
 
         // File type breakdown
-        $fileTypes = DB::table('unique_uploaded_files')
+        $fileTypes = DB::table('dedupler_unique_files')
             ->select(DB::raw('SUBSTRING_INDEX(mime_type, "/", 1) as file_type'), DB::raw('COUNT(*) as count'))
             ->whereNotNull('mime_type')
             ->groupBy('file_type')
@@ -91,19 +92,19 @@ class FileStorageStatsCommand extends Command
 
     protected function getStorageStats(): array
     {
-        $totalFiles = UniqueUploadedFile::query()
+        $totalFiles = UniqueFile::query()
             ->count();
-        $totalRelationships = UniqueUploadedFileToModel::query()
+        $totalRelationships = UniqueFileToModel::query()
             ->count();
 
-        $filesWithRelationships = DB::table('unique_uploaded_files as file')
-            ->join('unique_uploaded_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+        $filesWithRelationships = DB::table('dedupler_unique_files as file')
+            ->join('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
             ->distinct('file.id')
             ->count('file.id');
 
         $filesWithoutRelationships = $totalFiles - $filesWithRelationships;
 
-        $totalStorageUsed = UniqueUploadedFile::query()->sum('size');
+        $totalStorageUsed = UniqueFile::query()->sum('size');
 
         return [
             'total_files' => $totalFiles,
@@ -116,12 +117,6 @@ class FileStorageStatsCommand extends Command
 
     protected function formatBytes(int $bytes, int $precision = 2): string
     {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= pow(1024, $pow);
-
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return FormatingHelper::formatBytes($bytes, $precision);
     }
 }

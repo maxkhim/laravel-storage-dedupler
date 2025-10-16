@@ -4,18 +4,18 @@ namespace Maxkhim\Dedupler\Traits;
 
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Maxkhim\Dedupler\Contracts\FileSourceInterface;
-use Maxkhim\Dedupler\Models\UniqueUploadedFile;
+use Maxkhim\Dedupler\Models\UniqueFile;
 use Illuminate\Http\UploadedFile;
-use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Models\UniqueFileToModel;
 
-trait HasUniqueFiles
+trait Deduplable
 {
     /**
      * Полиморфная связь через промежуточную таблицу
      */
     public function uniqueFileUploads(): MorphMany
     {
-        return $this->morphMany(UniqueUploadedFileToModel::class, 'uploadable');
+        return $this->morphMany(UniqueFileToModel::class, 'deduplable');
     }
 
     /**
@@ -24,9 +24,9 @@ trait HasUniqueFiles
     public function uniqueFiles()
     {
         return $this->belongsToMany(
-            UniqueUploadedFile::class,
-            'unique_uploaded_files_to_models',
-            'uploadable_id',
+            UniqueFile::class,
+            'dedupler_unique_files_to_models',
+            'deduplable_id',
             'sha1_hash',
             'id',
             'id'
@@ -36,7 +36,7 @@ trait HasUniqueFiles
     /**
      * Сохранить файл из любого источника
      */
-    public function storeUniqueFile(FileSourceInterface $fileSource, array $options = []): ?UniqueUploadedFileToModel
+    public function storeUniqueFile(FileSourceInterface $fileSource, array $options = []): ?UniqueFileToModel
     {
         return app('dedupler')->store($fileSource, $this, $options);
     }
@@ -44,7 +44,7 @@ trait HasUniqueFiles
     /**
      * Сохранить UploadedFile
      */
-    public function storeUploadedFile(UploadedFile $file, array $options = []): ?UniqueUploadedFileToModel
+    public function storeUploadedFile(UploadedFile $file, array $options = []): ?UniqueFileToModel
     {
         return app('dedupler')->storeFromUploadedFile($file, $this, $options);
     }
@@ -52,7 +52,7 @@ trait HasUniqueFiles
     /**
      * Сохранить локальный файл
      */
-    public function storeLocalFile(string $path, array $options = []): ?UniqueUploadedFileToModel
+    public function storeLocalFile(string $path, array $options = []): ?UniqueFileToModel
     {
         return app('dedupler')->storeFromPath($path, $this, $options);
     }
@@ -60,7 +60,7 @@ trait HasUniqueFiles
     /**
      * Сохранить из потока
      */
-    public function storeStreamFile($stream, string $filename, array $options = []): ?UniqueUploadedFileToModel
+    public function storeStreamFile($stream, string $filename, array $options = []): ?UniqueFileToModel
     {
         return app('dedupler')->storeFromStream($stream, $filename, $this, $options);
     }
@@ -68,7 +68,7 @@ trait HasUniqueFiles
     /**
      * Сохранить из сырого контента
      */
-    public function storeContentFile(string $content, string $filename, array $options = []): ?UniqueUploadedFileToModel
+    public function storeContentFile(string $content, string $filename, array $options = []): ?UniqueFileToModel
     {
         return app('dedupler')->storeFromContent($content, $filename, $this, $options);
     }
@@ -84,7 +84,7 @@ trait HasUniqueFiles
     /**
      * Прикрепить существующий файл по хэшу
      */
-    public function attachUniqueFile(string $fileHash, array $pivotAttributes = []): ?UniqueUploadedFileToModel
+    public function attachUniqueFile(string $fileHash, array $pivotAttributes = []): ?UniqueFileToModel
     {
         return app('dedupler')->attach($fileHash, $this, $pivotAttributes);
     }

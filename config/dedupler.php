@@ -3,16 +3,17 @@
 declare(strict_types=1);
 
 return [
-    "enabled" => env("UNIQUE_FILE_STORAGE", true),
+    "enabled" => env("DEDUPLER_ENABLED", true),
+    "connection" => env("DEDUPLER_CONNECTION", "default"),
     'db' => [
-        'host' => env('UNIQUE_FILE_STORAGE_DB_HOST', '127.0.0.1'),
-        'port' => env('UNIQUE_FILE_STORAGE_DB_PORT', '3306'),
-        'database' => env('UNIQUE_FILE_STORAGE_DB_DATABASE', 'unique_files'),
-        'username' => env('UNIQUE_FILE_STORAGE_DB_USERNAME', 'unique_files_dbo'),
-        'password' => env('UNIQUE_FILE_STORAGE_DB_PASSWORD', ''),
-        'driver' => env('UNIQUE_FILE_STORAGE_DB_CONNECTION', 'mariadb'),
+        'host' => env('DEDUPLER_DB_HOST', '127.0.0.1'),
+        'port' => env('DEDUPLER_DB_PORT', '3306'),
+        'database' => env('DEDUPLER_DB_DATABASE', 'unique_files'),
+        'username' => env('DEDUPLER_DB_USERNAME', 'unique_files_dbo'),
+        'password' => env('DEDUPLER_DB_PASSWORD', ''),
+        'driver' => env('DEDUPLER_DB_DRIVER', 'mariadb'),
     ],
-    'default_disk' => env('UNIQUE_FILE_STORAGE_DISK', 'public'),
+    'default_disk' => env('DEDUPLER_DISK', 'public'),
     'disks' => [
         'local' => [
             'driver' => 'local',

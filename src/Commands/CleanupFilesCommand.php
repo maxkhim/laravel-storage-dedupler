@@ -6,8 +6,9 @@ namespace Maxkhim\Dedupler\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
-use Maxkhim\Dedupler\Models\UniqueUploadedFile;
-use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Helpers\FormatingHelper;
+use Maxkhim\Dedupler\Models\UniqueFile;
+use Maxkhim\Dedupler\Models\UniqueFileToModel;
 use Illuminate\Support\Facades\DB;
 
 class CleanupFilesCommand extends Command
@@ -78,8 +79,8 @@ class CleanupFilesCommand extends Command
         $this->info('Checking for orphaned relationships...');
         $this->info('Проверка на наличие несвязанных связей...');
 
-        $orphanedRelationsCount = DB::table('unique_uploaded_files_to_models as rel')
-            ->leftJoin('unique_uploaded_files as file', 'rel.sha1_hash', '=', 'file.id')
+        $orphanedRelationsCount = DB::table('dedupler_unique_files_to_models as rel')
+            ->leftJoin('dedupler_unique_files as file', 'rel.sha1_hash', '=', 'file.id')
             ->whereNull('file.id')
             ->count();
 
@@ -96,13 +97,13 @@ class CleanupFilesCommand extends Command
             $progressBar = $this->output->createProgressBar($orphanedRelationsCount);
             $progressBar->start();
 
-            DB::table('unique_uploaded_files_to_models as rel')
+            DB::table('dedupler_unique_files_to_models as rel')
                 ->select('rel.id')
-                ->leftJoin('unique_uploaded_files as file', 'rel.sha1_hash', '=', 'file.id')
+                ->leftJoin('dedupler_unique_files as file', 'rel.sha1_hash', '=', 'file.id')
                 ->whereNull('file.id')
                 ->chunkById($chunkSize, function ($relations) use ($progressBar) {
                     $ids = $relations->pluck('id')->toArray();
-                    UniqueUploadedFileToModel::query()
+                    UniqueFileToModel::query()
                         ->whereIn('id', $ids)->delete();
                     $progressBar->advance(count($ids));
                 });
@@ -124,8 +125,8 @@ class CleanupFilesCommand extends Command
         $this->info('Checking for orphaned files...');
         $this->info('Проверка на наличие несвязанных файлов...');
 
-        $orphanedFilesCount = DB::table('unique_uploaded_files as file')
-            ->leftJoin('unique_uploaded_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+        $orphanedFilesCount = DB::table('dedupler_unique_files as file')
+            ->leftJoin('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
             ->whereNull('rel.id')
             ->count();
 
@@ -146,8 +147,8 @@ class CleanupFilesCommand extends Command
             $progressBar = $this->output->createProgressBar($orphanedFilesCount);
             $progressBar->start();
 
-            DB::table('unique_uploaded_files as file')
-                ->leftJoin('unique_uploaded_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+            DB::table('dedupler_unique_files as file')
+                ->leftJoin('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
                 ->whereNull('rel.id')
                 ->select('file.*')
                 ->chunkById(
@@ -163,7 +164,7 @@ class CleanupFilesCommand extends Command
                                     }
 
                                     // Delete database record
-                                    UniqueUploadedFile::where('id', $file->id)->delete();
+                                    UniqueFile::query()->where('id', $file->id)->delete();
                                 }
                                 $deletedFiles++;
                             } catch (\Exception $e) {
@@ -179,8 +180,8 @@ class CleanupFilesCommand extends Command
             $this->newLine();
         } else {
             $deletedFiles = $orphanedFilesCount;
-            $deletedBytes = DB::table('unique_uploaded_files as file')
-                ->leftJoin('unique_uploaded_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+            $deletedBytes = DB::table('dedupler_unique_files as file')
+                ->leftJoin('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
                 ->whereNull('rel.id')
                 ->sum('file.size');
         }
@@ -210,12 +211,6 @@ class CleanupFilesCommand extends Command
      */
     protected function formatBytes(int $bytes, int $precision = 2): string
     {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= pow(1024, $pow);
-
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return FormatingHelper::formatBytes($bytes, $precision);
     }
 }

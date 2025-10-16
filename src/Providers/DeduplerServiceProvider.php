@@ -3,11 +3,12 @@
 namespace Maxkhim\Dedupler\Providers;
 
 use Illuminate\Filesystem\Filesystem;
-use Maxkhim\Dedupler\Commands\CheckUniqueFileStorageCommand;
+use Maxkhim\Dedupler\Commands\CheckDeduplerStorageCommand;
 use Maxkhim\Dedupler\Commands\CleanupFilesCommand;
+use Maxkhim\Dedupler\Commands\DeduplerInitCommand;
 use Maxkhim\Dedupler\Commands\FileStorageStatsCommand;
 use Maxkhim\Dedupler\Contracts\FileStorageInterface;
-use Maxkhim\Dedupler\Services\FileStorageService;
+use Maxkhim\Dedupler\Services\DeduplerService;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -66,16 +67,13 @@ class DeduplerServiceProvider extends PackageServiceProvider
 
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
-            ->hasRoutes([
-                'web',
-                'api'
-            ])
+            ->hasRoutes($this->getRoutes())
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
-                    ->publishConfigFile()
-                    ->publishMigrations()
-                    ->askToRunMigrations()
-                    //->askToStarRepoOnGitHub(':vendor_slug/:package_slug')
+                    //->publishConfigFile()
+                    //->publishMigrations()
+                    //->askToRunMigrations()
+                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug')
                 ;
             });
 
@@ -104,7 +102,7 @@ class DeduplerServiceProvider extends PackageServiceProvider
      */
     public function packageRegistered(): void
     {
-        $this->app->singleton(FileStorageInterface::class, FileStorageService::class);
+        $this->app->singleton(FileStorageInterface::class, DeduplerService::class);
         $this->app->bind('dedupler', FileStorageInterface::class);
         $this->configureDBConnection();
     }
@@ -132,16 +130,6 @@ class DeduplerServiceProvider extends PackageServiceProvider
     }
 
     /**
-     * Возвращает имя пакета npm или пакета, отвечающего за активы.
-     *
-     * @return string|null
-     */
-    protected function getAssetPackageName(): ?string
-    {
-        return 'maxkhim/dedupler';
-    }
-
-    /**
      * Возвращает массив команд, связанных с этим пакетом.
      *
      * @return array<class-string>
@@ -149,22 +137,25 @@ class DeduplerServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            CheckUniqueFileStorageCommand::class,
+            CheckDeduplerStorageCommand::class,
             CleanupFilesCommand::class,
             FileStorageStatsCommand::class,
+            DeduplerInitCommand::class,
         ];
     }
 
     /**
-     * Возвращает массив маршрутов пакета (не используется в данном случае).
+     * Возвращает массив маршрутов пакета
      *
      * @return array<string>
      */
-    /*protected function getRoutes(): array
+    protected function getRoutes(): array
     {
         return [
+            'web',
+            'api'
         ];
-    }*/
+    }
 
 
     /**

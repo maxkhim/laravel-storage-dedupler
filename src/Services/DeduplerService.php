@@ -9,15 +9,15 @@ use Maxkhim\Dedupler\FileSources\ContentAdapter;
 use Maxkhim\Dedupler\FileSources\LocalFileAdapter;
 use Maxkhim\Dedupler\FileSources\StreamAdapter;
 use Maxkhim\Dedupler\FileSources\UploadedFileAdapter;
-use Maxkhim\Dedupler\Models\UniqueUploadedFile;
+use Maxkhim\Dedupler\Models\UniqueFile;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Maxkhim\Dedupler\Models\UniqueUploadedFileToModel;
+use Maxkhim\Dedupler\Models\UniqueFileToModel;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class FileStorageService implements FileStorageInterface
+class DeduplerService implements FileStorageInterface
 {
     protected $config;
 
@@ -33,7 +33,7 @@ class FileStorageService implements FileStorageInterface
         FileSourceInterface $fileSource,
         Model $model,
         array $options = []
-    ): ?UniqueUploadedFileToModel {
+    ): ?UniqueFileToModel {
 
         if (!$fileSource->isValid()) {
             Log::warning('Invalid file source provided');
@@ -62,7 +62,7 @@ class FileStorageService implements FileStorageInterface
         UploadedFile $file,
         Model $model,
         array $options = []
-    ): ?UniqueUploadedFileToModel {
+    ): ?UniqueFileToModel {
         $fileSource = new UploadedFileAdapter($file);
         return $this->store($fileSource, $model, $options);
     }
@@ -70,7 +70,7 @@ class FileStorageService implements FileStorageInterface
     /**
      * Удобный метод для локальных файлов
      */
-    public function storeFromPath(string $path, Model $model, array $options = []): ?UniqueUploadedFileToModel
+    public function storeFromPath(string $path, Model $model, array $options = []): ?UniqueFileToModel
     {
         $originalName = $options['original_name'] ?? basename($path);
         $fileSource = new LocalFileAdapter($path, $originalName);
@@ -85,7 +85,7 @@ class FileStorageService implements FileStorageInterface
         string $filename,
         Model $model,
         array $options = []
-    ): ?UniqueUploadedFileToModel {
+    ): ?UniqueFileToModel {
         $mimeType = $options['mime_type'] ?? null;
         $size = $options['size'] ?? 0;
 
@@ -101,7 +101,7 @@ class FileStorageService implements FileStorageInterface
         string $filename,
         Model $model,
         array $options = []
-    ): ?UniqueUploadedFileToModel {
+    ): ?UniqueFileToModel {
         $mimeType = $options['mime_type'] ?? null;
         $fileSource = new ContentAdapter($content, $filename, $mimeType);
         return $this->store($fileSource, $model, $options);
@@ -137,14 +137,14 @@ class FileStorageService implements FileStorageInterface
         Model $model,
         string $disk,
         array $pivotAttributes
-    ): ?UniqueUploadedFileToModel {
+    ): ?UniqueFileToModel {
         // Чтение файла и вычисление хэшей
         $content = $fileSource->getContent();
         $sha1Hash = sha1($content);
         $md5Hash = md5($content);
 
         // Проверка существования файла
-        $existingFile = UniqueUploadedFile::query()
+        $existingFile = UniqueFile::query()
             ->find($sha1Hash);
 
         if ($existingFile) {
@@ -167,7 +167,7 @@ class FileStorageService implements FileStorageInterface
         Model $model,
         string $disk,
         array $pivotAttributes
-    ): ?UniqueUploadedFileToModel {
+    ): ?UniqueFileToModel {
         $stream = $fileSource->getStream();
 
         try {
@@ -185,7 +185,7 @@ class FileStorageService implements FileStorageInterface
             $md5Hash = hash_final($md5Hash);
 
             // Проверка существования файла
-            $existingFile = UniqueUploadedFile::query()->find($sha1Hash);
+            $existingFile = UniqueFile::query()->find($sha1Hash);
 
             if ($existingFile) {
                 fclose($stream);
@@ -218,7 +218,7 @@ class FileStorageService implements FileStorageInterface
         string $md5Hash,
         string $disk,
         string $content
-    ): UniqueUploadedFile {
+    ): UniqueFile {
         $path = $this->generateFilePath($fileSource, $sha1Hash);
         $filename = $this->generateFilename($fileSource, $sha1Hash);
 
@@ -226,7 +226,7 @@ class FileStorageService implements FileStorageInterface
         Storage::disk($disk)->put($path, $content);
 
         // Создание записи
-        return UniqueUploadedFile::create([
+        return UniqueFile::create([
             'id' => $sha1Hash,
             'sha1_hash' => $sha1Hash,
             'md5_hash' => $md5Hash,
@@ -246,7 +246,7 @@ class FileStorageService implements FileStorageInterface
         string $sha1Hash,
         string $md5Hash,
         string $disk
-    ): UniqueUploadedFile {
+    ): UniqueFile {
         $path = $this->generateFilePath($fileSource, $sha1Hash);
 
         // Сохранение через Flysystem
@@ -261,7 +261,7 @@ class FileStorageService implements FileStorageInterface
         $mimeType = Storage::disk($disk)->mimeType($path) ?: $fileSource->getMimeType();
 
         // Создание записи
-        return UniqueUploadedFile::create([
+        return UniqueFile::create([
             'id' => $sha1Hash,
             'sha1_hash' => $sha1Hash,
             'md5_hash' => $md5Hash,
@@ -311,14 +311,15 @@ class FileStorageService implements FileStorageInterface
     }
 
     protected function attachExistingFile(
-        UniqueUploadedFile $file,
+        UniqueFile $file,
         Model $model,
         array $pivotAttributes = []
-    ): UniqueUploadedFileToModel {
+    ): UniqueFileToModel {
         // Проверяем, нет ли уже такой связи
-        $existingLink = UniqueUploadedFileToModel::where('sha1_hash', $file->id)
-            ->where('uploadable_type', get_class($model))
-            ->where('uploadable_id', $model->getKey())
+        $existingLink = UniqueFileToModel::query()
+            ->where('sha1_hash', $file->id)
+            ->where('deduplable_type', get_class($model))
+            ->where('deduplable_id', $model->getKey())
             ->first();
 
         if ($existingLink) {
@@ -330,30 +331,30 @@ class FileStorageService implements FileStorageInterface
         }
 
         // Создаем новую связь
-        return UniqueUploadedFileToModel::create(array_merge([
+        return UniqueFileToModel::create(array_merge([
             'sha1_hash' => $file->id,
-            'uploadable_type' => get_class($model),
-            'uploadable_id' => $model->getKey(),
+            'deduplable_type' => get_class($model),
+            'deduplable_id' => $model->getKey(),
             'status' => 'completed',
         ], $pivotAttributes));
     }
 
     protected function createFileModelLink(
-        UniqueUploadedFile $file,
+        UniqueFile $file,
         Model $model,
         array $pivotAttributes = []
-    ): UniqueUploadedFileToModel {
-        return UniqueUploadedFileToModel::create(array_merge([
+    ): UniqueFileToModel {
+        return UniqueFileToModel::create(array_merge([
             'sha1_hash' => $file->id,
-            'uploadable_type' => get_class($model),
-            'uploadable_id' => $model->getKey(),
+            'deduplable_type' => get_class($model),
+            'deduplable_id' => $model->getKey(),
             'status' => 'completed',
         ], $pivotAttributes));
     }
 
-    public function attach(string $fileHash, Model $model, array $pivotAttributes = []): ?UniqueUploadedFileToModel
+    public function attach(string $fileHash, Model $model, array $pivotAttributes = []): ?UniqueFileToModel
     {
-        $file = UniqueUploadedFile::query()->find($fileHash);
+        $file = UniqueFile::query()->find($fileHash);
 
         if (!$file) {
             return null;
@@ -366,13 +367,13 @@ class FileStorageService implements FileStorageInterface
 
     public function detach(string $fileHash, Model $model): bool
     {
-        $deleted = UniqueUploadedFileToModel::where('sha1_hash', $fileHash)
-            ->where('uploadable_type', get_class($model))
-            ->where('uploadable_id', $model->getKey())
+        $deleted = UniqueFileToModel::query()->where('sha1_hash', $fileHash)
+            ->where('deduplable_type', get_class($model))
+            ->where('deduplable_id', $model->getKey())
             ->delete();
 
         // Проверяем, остались ли другие связи с этим файлом
-        $remainingRelations = UniqueUploadedFileToModel::where('sha1_hash', $fileHash)->count();
+        $remainingRelations = UniqueFileToModel::query()->where('sha1_hash', $fileHash)->count();
 
         // Если связей больше нет, удаляем файл
         if ($remainingRelations === 0) {
@@ -384,14 +385,14 @@ class FileStorageService implements FileStorageInterface
 
     public function delete(string $fileHash, bool $force = false): bool
     {
-        $file = UniqueUploadedFile::query()->find($fileHash);
+        $file = UniqueFile::query()->find($fileHash);
 
         if (!$file) {
             return false;
         }
 
         // Получаем все связи
-        $relations = UniqueUploadedFileToModel::where('sha1_hash', $fileHash)->get();
+        $relations = UniqueFileToModel::query()->where('sha1_hash', $fileHash)->get();
 
         // Если force = true или нет активных связей
         if ($force || $relations->isEmpty()) {
@@ -399,7 +400,7 @@ class FileStorageService implements FileStorageInterface
             Storage::disk($file->disk)->delete($file->path);
 
             // Удаляем все связи
-            UniqueUploadedFileToModel::where('sha1_hash', $fileHash)->delete();
+            UniqueFileToModel::query()->where('sha1_hash', $fileHash)->delete();
 
             // Удаляем запись о файле
             return $file->delete();
@@ -410,7 +411,7 @@ class FileStorageService implements FileStorageInterface
 
     protected function deleteFileRecord(string $fileHash): bool
     {
-        $file = UniqueUploadedFile::query()->find($fileHash);
+        $file = UniqueFile::query()->find($fileHash);
 
         if ($file) {
             // Удаляем физический файл
@@ -423,22 +424,22 @@ class FileStorageService implements FileStorageInterface
 
     public function updatePivotStatus(string $fileHash, Model $model, string $status): bool
     {
-        return UniqueUploadedFileToModel::where('sha1_hash', $fileHash)
-            ->where('uploadable_type', get_class($model))
-            ->where('uploadable_id', $model->getKey())
+        return UniqueFileToModel::query()->where('sha1_hash', $fileHash)
+            ->where('deduplable_type', get_class($model))
+            ->where('deduplable_id', $model->getKey())
             ->update(['status' => $status]);
     }
 
     public function getFileRelations(string $fileHash)
     {
-        return UniqueUploadedFileToModel::where('sha1_hash', $fileHash)
-            ->with('uploadable')
+        return UniqueFileToModel::query()->where('sha1_hash', $fileHash)
+            ->with('deduplable')
             ->get();
     }
 
     public function getUrl(string $fileHash): ?string
     {
-        $file = UniqueUploadedFile::query()->find($fileHash);
+        $file = UniqueFile::query()->find($fileHash);
 
         if (!$file) {
             return null;
@@ -453,7 +454,7 @@ class FileStorageService implements FileStorageInterface
 
     public function getTemporaryUrl(string $fileHash, \DateTimeInterface $expiration): ?string
     {
-        $file = UniqueUploadedFile::query()->find($fileHash);
+        $file = UniqueFile::query()->find($fileHash);
 
         if (!$file) {
             return null;
@@ -472,7 +473,7 @@ class FileStorageService implements FileStorageInterface
 
     public function streamDownload(string $fileHash): ?StreamedResponse
     {
-        $file = UniqueUploadedFile::query()->find($fileHash);
+        $file = UniqueFile::query()->find($fileHash);
 
         if (!$file) {
             return null;
@@ -486,6 +487,6 @@ class FileStorageService implements FileStorageInterface
 
     public function exists(string $fileHash): bool
     {
-        return UniqueUploadedFile::query()->where('id', $fileHash)->exists();
+        return UniqueFile::query()->where('id', $fileHash)->exists();
     }
 }
