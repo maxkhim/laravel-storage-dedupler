@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     "enabled" => env("DEDUPLER_ENABLED", true),
-    "connection" => env("DEDUPLER_CONNECTION", "default"),
+    "db_connection" => env("DEDUPLER_CONNECTION", config('database.default')),
     'db' => [
         'host' => env('DEDUPLER_DB_HOST', '127.0.0.1'),
         'port' => env('DEDUPLER_DB_PORT', '3306'),

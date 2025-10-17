@@ -2,8 +2,10 @@
 
 namespace Maxkhim\Dedupler\Facades;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
-use Maxkhim\Dedupler\Models\UniqueFileToModel;
+use Maxkhim\Dedupler\Contracts\FileSourceInterface;
+use Maxkhim\Dedupler\Models\Deduplicatable;
 use Maxkhim\Dedupler\Services\DeduplerService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -13,12 +15,12 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *
  * Предоставляет удобный способ доступа к функциям FileStorageInterface через статические вызовы.
  * @see DeduplerService
- * @method static UniqueFileToModel|null store(FileSourceInterface $fileSource, Model $model, array $options = [])
- * @method static UniqueFileToModel|null storeFromUploadedFile (UploadedFile $file, Model $model, array $options = [])
- * @method static UniqueFileToModel|null storeFromPath(string $path, Model $model, array $options = [])
- * @method static UniqueFileToModel|null storeFromStream($stream, string $filename, Model $model, array $options = [])
- * @method static UniqueFileToModel|null storeFromContent(string $content, string $filename, Model $model, array $options = [])
- * @method static UniqueFileToModel|null attach(string $fileHash, Model $model, array $pivotAttributes = [])
+ * @method static Deduplicatable|null store(FileSourceInterface $fileSource, Model $model, array $options = [])
+ * @method static Deduplicatable|null storeFromUploadedFile (UploadedFile $file, Model $model, array $options = [])
+ * @method static Deduplicatable|null storeFromPath(string $path, Model $model, array $options = [])
+ * @method static Deduplicatable|null storeFromStream($stream, string $filename, Model $model, array $options = [])
+ * @method static Deduplicatable|null storeFromContent(string $content, string $filename, Model $model, array $options = [])
+ * @method static Deduplicatable|null attach(string $fileHash, Model $model, array $pivotAttributes = [])
  * @method static bool detach(string $fileHash, Model $model)
  * @method static bool delete(string $fileHash, bool $force = false)
  * @method static bool exists(string $fileHash)

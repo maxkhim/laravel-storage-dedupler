@@ -4,7 +4,7 @@ namespace Maxkhim\Dedupler\Contracts;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
-use Maxkhim\Dedupler\Models\UniqueFileToModel;
+use Maxkhim\Dedupler\Models\Deduplicatable;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 interface FileStorageInterface
@@ -14,30 +14,30 @@ interface FileStorageInterface
         FileSourceInterface $fileSource,
         Model $model,
         array $options = []
-    ): ?UniqueFileToModel;
+    ): ?Deduplicatable;
 
     // Удобные методы для различных источников
     public function storeFromUploadedFile(
         UploadedFile $file,
         Model $model,
         array $options = []
-    ): ?UniqueFileToModel;
-    public function storeFromPath(string $path, Model $model, array $options = []): ?UniqueFileToModel;
+    ): ?Deduplicatable;
+    public function storeFromPath(string $path, Model $model, array $options = []): ?Deduplicatable;
     public function storeFromStream(
         $stream,
         string $filename,
         Model $model,
         array $options = []
-    ): ?UniqueFileToModel;
+    ): ?Deduplicatable;
     public function storeFromContent(
         string $content,
         string $filename,
         Model $model,
         array $options = []
-    ): ?UniqueFileToModel;
+    ): ?Deduplicatable;
 
     // Методы для работы с существующими файлами
-    public function attach(string $fileHash, Model $model, array $pivotAttributes = []): ?UniqueFileToModel;
+    public function attach(string $fileHash, Model $model, array $pivotAttributes = []): ?Deduplicatable;
     public function detach(string $fileHash, Model $model): bool;
     public function delete(string $fileHash, bool $force = false): bool;
     public function exists(string $fileHash): bool;

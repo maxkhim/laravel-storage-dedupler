@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Maxkhim\Dedupler\Helpers\FormatingHelper;
 use Maxkhim\Dedupler\Models\UniqueFile;
-use Maxkhim\Dedupler\Models\UniqueFileToModel;
+use Maxkhim\Dedupler\Models\Deduplicatable;
 use Illuminate\Support\Facades\DB;
 
 class CleanupFilesCommand extends Command
@@ -58,7 +58,7 @@ class CleanupFilesCommand extends Command
 
         $this->cleanupOrphanedRelationships($dryRun, $chunkSize);
         // Очистка файлов
-        //$this->cleanupOrphanedFiles($dryRun, $chunkSize);
+        $this->cleanupOrphanedFiles($dryRun, $chunkSize);
 
         if ($dryRun) {
             $this->info('✅ Dry run completed. Review the output above before running without --dry-run');
@@ -79,7 +79,7 @@ class CleanupFilesCommand extends Command
         $this->info('Checking for orphaned relationships...');
         $this->info('Проверка на наличие несвязанных связей...');
 
-        $orphanedRelationsCount = DB::table('dedupler_unique_files_to_models as rel')
+        $orphanedRelationsCount = DB::table('dedupler_deduplicatables as rel')
             ->leftJoin('dedupler_unique_files as file', 'rel.sha1_hash', '=', 'file.id')
             ->whereNull('file.id')
             ->count();
@@ -97,13 +97,13 @@ class CleanupFilesCommand extends Command
             $progressBar = $this->output->createProgressBar($orphanedRelationsCount);
             $progressBar->start();
 
-            DB::table('dedupler_unique_files_to_models as rel')
+            DB::table('dedupler_deduplicatables as rel')
                 ->select('rel.id')
                 ->leftJoin('dedupler_unique_files as file', 'rel.sha1_hash', '=', 'file.id')
                 ->whereNull('file.id')
                 ->chunkById($chunkSize, function ($relations) use ($progressBar) {
                     $ids = $relations->pluck('id')->toArray();
-                    UniqueFileToModel::query()
+                    Deduplicatable::query()
                         ->whereIn('id', $ids)->delete();
                     $progressBar->advance(count($ids));
                 });
@@ -126,7 +126,7 @@ class CleanupFilesCommand extends Command
         $this->info('Проверка на наличие несвязанных файлов...');
 
         $orphanedFilesCount = DB::table('dedupler_unique_files as file')
-            ->leftJoin('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+            ->leftJoin('dedupler_deduplicatables as rel', 'file.id', '=', 'rel.sha1_hash')
             ->whereNull('rel.id')
             ->count();
 
@@ -148,7 +148,7 @@ class CleanupFilesCommand extends Command
             $progressBar->start();
 
             DB::table('dedupler_unique_files as file')
-                ->leftJoin('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+                ->leftJoin('dedupler_deduplicatables as rel', 'file.id', '=', 'rel.sha1_hash')
                 ->whereNull('rel.id')
                 ->select('file.*')
                 ->chunkById(
@@ -181,7 +181,7 @@ class CleanupFilesCommand extends Command
         } else {
             $deletedFiles = $orphanedFilesCount;
             $deletedBytes = DB::table('dedupler_unique_files as file')
-                ->leftJoin('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+                ->leftJoin('dedupler_deduplicatables as rel', 'file.id', '=', 'rel.sha1_hash')
                 ->whereNull('rel.id')
                 ->sum('file.size');
         }
@@ -192,10 +192,10 @@ class CleanupFilesCommand extends Command
             ($dryRun ? 'была бы удалена' : 'удалена') . " {$deletedFiles} файлов."
         );
         $this->info("Total storage space " .
-            ($dryRun ? 'that would be freed' : 'freed') . ": " . $this->formatBytes((int)$deletedBytes));
+            ($dryRun ? 'that would be freed' : 'freed') . ": " . FormatingHelper::formatBytes((int)$deletedBytes));
         $this->info("Общий объем освобожденного пространства " .
             ($dryRun ? 'который был бы освобожден' : 'который был освобожден') .
-            ": " . $this->formatBytes((int)$deletedBytes));
+            ": " . FormatingHelper::formatBytes((int)$deletedBytes));
 
         if (!empty($errors)) {
             $this->error('Errors encountered during cleanup:');
@@ -204,13 +204,5 @@ class CleanupFilesCommand extends Command
                 $this->error("  - {$error}");
             }
         }
-    }
-
-    /**
-     * Format bytes to human readable format
-     */
-    protected function formatBytes(int $bytes, int $precision = 2): string
-    {
-        return FormatingHelper::formatBytes($bytes, $precision);
     }
 }

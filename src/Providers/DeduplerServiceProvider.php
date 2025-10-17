@@ -5,8 +5,10 @@ namespace Maxkhim\Dedupler\Providers;
 use Illuminate\Filesystem\Filesystem;
 use Maxkhim\Dedupler\Commands\CheckDeduplerStorageCommand;
 use Maxkhim\Dedupler\Commands\CleanupFilesCommand;
+use Maxkhim\Dedupler\Commands\CreateDummyFilesCommand;
 use Maxkhim\Dedupler\Commands\DeduplerInitCommand;
 use Maxkhim\Dedupler\Commands\FileStorageStatsCommand;
+use Maxkhim\Dedupler\Commands\MigrateLegacyFilesCommand;
 use Maxkhim\Dedupler\Contracts\FileStorageInterface;
 use Maxkhim\Dedupler\Services\DeduplerService;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -141,6 +143,8 @@ class DeduplerServiceProvider extends PackageServiceProvider
             CleanupFilesCommand::class,
             FileStorageStatsCommand::class,
             DeduplerInitCommand::class,
+            CreateDummyFilesCommand::class,
+            MigrateLegacyFilesCommand::class
         ];
     }
 

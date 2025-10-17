@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Maxkhim\Dedupler\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Maxkhim\Dedupler\Helpers\FormatingHelper;
 use Maxkhim\Dedupler\Models\UniqueFile;
-use Maxkhim\Dedupler\Models\UniqueFileToModel;
+use Maxkhim\Dedupler\Models\Deduplicatable;
 use Illuminate\Support\Facades\DB;
 
 class FileStorageStatsCommand extends Command
@@ -29,7 +28,7 @@ class FileStorageStatsCommand extends Command
 
     public function handle(): int
     {
-        DB::setDefaultConnection("dedupler");
+        DB::setDefaultConnection(config("dedupler.db_connection"));
         $stats = $this->getStorageStats();
 
         $this->info('📊 File Storage Statistics / Статистика хранилища файлов');
@@ -42,7 +41,8 @@ class FileStorageStatsCommand extends Command
                 ['Total Relationships / Всего связей', $stats['total_relationships']],
                 ['Files with Relationships / Файлов со связями', $stats['files_with_relationships']],
                 ['Orphaned Files / Несвязанных файлов', $stats['files_without_relationships']],
-                ['Total Storage Used / Всего хранилища использовано', $this->formatBytes($stats['total_storage_used'])],
+                ['Total Storage Used / Всего хранилища использовано',
+                    FormatingHelper::formatBytes($stats['total_storage_used'])],
             ]
         );
 
@@ -59,7 +59,7 @@ class FileStorageStatsCommand extends Command
                 return [
                     'Disk' => $disk->disk,
                     'Files' => $disk->file_count,
-                    'Size' => $this->formatBytes((int)$disk->total_size),
+                    'Size' => FormatingHelper::formatBytes((int)$disk->total_size),
                 ];
             })->toArray();
 
@@ -94,11 +94,11 @@ class FileStorageStatsCommand extends Command
     {
         $totalFiles = UniqueFile::query()
             ->count();
-        $totalRelationships = UniqueFileToModel::query()
+        $totalRelationships = Deduplicatable::query()
             ->count();
 
         $filesWithRelationships = DB::table('dedupler_unique_files as file')
-            ->join('dedupler_unique_files_to_models as rel', 'file.id', '=', 'rel.sha1_hash')
+            ->join('dedupler_deduplicatables as rel', 'file.id', '=', 'rel.sha1_hash')
             ->distinct('file.id')
             ->count('file.id');
 
@@ -113,10 +113,5 @@ class FileStorageStatsCommand extends Command
             'files_without_relationships' => $filesWithoutRelationships,
             'total_storage_used' => (int)$totalStorageUsed,
         ];
-    }
-
-    protected function formatBytes(int $bytes, int $precision = 2): string
-    {
-        return FormatingHelper::formatBytes($bytes, $precision);
     }
 }

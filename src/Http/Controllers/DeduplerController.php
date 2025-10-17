@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Maxkhim\Dedupler\Facades\Dedupler;
 use Maxkhim\Dedupler\Helpers\FormatingHelper;
 use Maxkhim\Dedupler\Models\UniqueFile;
-use Maxkhim\Dedupler\Models\UniqueFileToModel;
+use Maxkhim\Dedupler\Models\Deduplicatable;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DeduplerController extends Controller
@@ -222,7 +222,7 @@ class DeduplerController extends Controller
             }
 
             // Получаем информацию о связанных моделях
-            $relations = UniqueFileToModel::query()->where('sha1_hash', $hash)->get();
+            $relations = Deduplicatable::query()->where('sha1_hash', $hash)->get();
             $modelCounts = $relations->groupBy('deduplable_type')->map->count();
 
             $fileInfo = [
@@ -235,7 +235,7 @@ class DeduplerController extends Controller
                 'path' => $file->path,
                 'mime_type' => $file->mime_type,
                 'size' => $file->size,
-                'size_human' => $this->formatBytes($file->size),
+                'size_human' => FormatingHelper::formatBytes($file->size),
                 'disk' => $file->disk,
                 'status' => $file->status,
                 'url' => Dedupler::getUrl($file->id),
@@ -391,7 +391,7 @@ class DeduplerController extends Controller
             'original_name' => $file->original_name,
             'mime_type' => $file->mime_type,
             'size' => $file->size,
-            'size_human' => $this->formatBytes($file->size),
+            'size_human' => FormatingHelper::formatBytes($file->size),
             'disk' => $file->disk,
             'status' => $file->status,
             'url' => Dedupler::getUrl($file->id),
@@ -401,13 +401,5 @@ class DeduplerController extends Controller
             'relation_id' => $relation?->id,
             'relation_status' => $relation?->status,
         ];
-    }
-
-    /**
-     * Форматирование размера файла в читаемый вид
-     */
-    private function formatBytes(int $bytes, int $precision = 2): string
-    {
-        return FormatingHelper::formatBytes($bytes, $precision);
     }
 }
