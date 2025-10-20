@@ -21,6 +21,7 @@ class CleanupFilesCommand extends Command
     protected $signature = 'dedupler:files-cleanup
                             {--dry-run : Perform a dry run without deleting anything / Только просмотр без удаления}
                             {--force : Skip confirmation prompt / Пропустить подтверждение}
+                            {--remove-orphan-files : Remove files without morphed relationships}
                             {--chunk=1000 : Number of records process at a time / Кол-во записей для обработки за раз}';
 
     /**
@@ -28,16 +29,17 @@ class CleanupFilesCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Очистить несвязанные файлы и связи  /  Clean up orphaned files and relationships';
+    protected $description = 'Clean up orphaned files and relationships / Очистить несвязанные файлы и связи';
 
     /**
      * Execute the console command.
      */
     public function handle(): int
     {
-        DB::setDefaultConnection("dedupler");
+        DB::setDefaultConnection(config("dedupler.db_connection"));
         $dryRun = $this->option('dry-run');
         $force = $this->option('force');
+        $removeOrphanFiles = $this->option('remove-orphan-files');
         $chunkSize = (int) $this->option('chunk');
 
         if ($dryRun) {
@@ -56,9 +58,13 @@ class CleanupFilesCommand extends Command
             }
         }
 
+        // Очистка связей
         $this->cleanupOrphanedRelationships($dryRun, $chunkSize);
+
         // Очистка файлов
-        $this->cleanupOrphanedFiles($dryRun, $chunkSize);
+        if ($removeOrphanFiles) {
+            $this->cleanupOrphanedFiles($dryRun, $chunkSize);
+        }
 
         if ($dryRun) {
             $this->info('✅ Dry run completed. Review the output above before running without --dry-run');
@@ -79,8 +85,12 @@ class CleanupFilesCommand extends Command
         $this->info('Checking for orphaned relationships...');
         $this->info('Проверка на наличие несвязанных связей...');
 
-        $orphanedRelationsCount = DB::table('dedupler_deduplicatables as rel')
-            ->leftJoin('dedupler_unique_files as file', 'rel.sha1_hash', '=', 'file.id')
+
+        $uniqueFileTable = (new UniqueFile())->getTable();
+        $deduplicatableTable = (new Deduplicatable())->getTable();
+
+        $orphanedRelationsCount = DB::table($deduplicatableTable . ' as rel')
+            ->leftJoin($uniqueFileTable . ' as file', 'rel.sha1_hash', '=', 'file.id')
             ->whereNull('file.id')
             ->count();
 
@@ -97,9 +107,9 @@ class CleanupFilesCommand extends Command
             $progressBar = $this->output->createProgressBar($orphanedRelationsCount);
             $progressBar->start();
 
-            DB::table('dedupler_deduplicatables as rel')
+            DB::table($deduplicatableTable . ' as rel')
                 ->select('rel.id')
-                ->leftJoin('dedupler_unique_files as file', 'rel.sha1_hash', '=', 'file.id')
+                ->leftJoin($uniqueFileTable . ' as file', 'rel.sha1_hash', '=', 'file.id')
                 ->whereNull('file.id')
                 ->chunkById($chunkSize, function ($relations) use ($progressBar) {
                     $ids = $relations->pluck('id')->toArray();
@@ -143,12 +153,15 @@ class CleanupFilesCommand extends Command
         $deletedBytes = 0;
         $errors = [];
 
+        $uniqueFileTable = (new UniqueFile())->getTable();
+        $deduplicatableTable = (new Deduplicatable())->getTable();
+
         if (!$dryRun) {
             $progressBar = $this->output->createProgressBar($orphanedFilesCount);
             $progressBar->start();
 
-            DB::table('dedupler_unique_files as file')
-                ->leftJoin('dedupler_deduplicatables as rel', 'file.id', '=', 'rel.sha1_hash')
+            DB::table($uniqueFileTable . ' as file')
+                ->leftJoin($deduplicatableTable . ' as rel', 'file.id', '=', 'rel.sha1_hash')
                 ->whereNull('rel.id')
                 ->select('file.*')
                 ->chunkById(
@@ -180,8 +193,8 @@ class CleanupFilesCommand extends Command
             $this->newLine();
         } else {
             $deletedFiles = $orphanedFilesCount;
-            $deletedBytes = DB::table('dedupler_unique_files as file')
-                ->leftJoin('dedupler_deduplicatables as rel', 'file.id', '=', 'rel.sha1_hash')
+            $deletedBytes = DB::table($uniqueFileTable . ' as file')
+                ->leftJoin($deduplicatableTable . ' as rel', 'file.id', '=', 'rel.sha1_hash')
                 ->whereNull('rel.id')
                 ->sum('file.size');
         }
