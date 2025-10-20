@@ -9,6 +9,7 @@ use Maxkhim\Dedupler\Commands\CreateDummyFilesCommand;
 use Maxkhim\Dedupler\Commands\DeduplerInitCommand;
 use Maxkhim\Dedupler\Commands\FileStorageStatsCommand;
 use Maxkhim\Dedupler\Commands\MigrateLegacyFilesCommand;
+use Maxkhim\Dedupler\Commands\RollbackLegacyFilesCommand;
 use Maxkhim\Dedupler\Contracts\FileStorageInterface;
 use Maxkhim\Dedupler\Services\DeduplerService;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
@@ -53,6 +54,18 @@ class DeduplerServiceProvider extends PackageServiceProvider
                         'password' => config("dedupler.db.password"),
                         'charset' => 'utf8',
                     ]
+                ]
+            );
+        }
+    }
+
+    protected function configureDeduplerDisk(): void
+    {
+
+        if (is_null(config('filesystems.disks.deduplicated'))) {
+            config(
+                [
+                    'filesystems.disks.deduplicated' => config("dedupler.disks.deduplicated"),
                 ]
             );
         }
@@ -107,6 +120,7 @@ class DeduplerServiceProvider extends PackageServiceProvider
         $this->app->singleton(FileStorageInterface::class, DeduplerService::class);
         $this->app->bind('dedupler', FileStorageInterface::class);
         $this->configureDBConnection();
+        $this->configureDeduplerDisk();
     }
 
     /**
@@ -143,8 +157,9 @@ class DeduplerServiceProvider extends PackageServiceProvider
             CleanupFilesCommand::class,
             FileStorageStatsCommand::class,
             DeduplerInitCommand::class,
-            CreateDummyFilesCommand::class,
-            MigrateLegacyFilesCommand::class
+            //CreateDummyFilesCommand::class,
+            MigrateLegacyFilesCommand::class,
+            RollbackLegacyFilesCommand::class,
         ];
     }
 

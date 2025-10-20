@@ -13,30 +13,14 @@ return [
         'password' => env('DEDUPLER_DB_PASSWORD', ''),
         'driver' => env('DEDUPLER_DB_DRIVER', 'mariadb'),
     ],
-    'default_disk' => env('DEDUPLER_DISK', 'public'),
+    'default_disk' => env('DEDUPLER_DISK', 'deduplicated'),
     'disks' => [
-        'local' => [
+        'deduplicated' => [
             'driver' => 'local',
-            'root' => storage_path('app/unique-files'),
-        ],
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public/unique-files'),
-            'url' => env('APP_URL') . '/storage/unique-files',
-            'visibility' => 'public',
-        ],
-        's3' => [
-            'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
-            'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT'),
-            'root' => 'unique-files',
+            'root' => env("DEDUPLER_DISK_PATH", storage_path('app/deduplicated')),
+            'visibility' => 'private'
         ],
     ],
-    'hash_algorithm' => 'sha1', // или 'md5'
     'path_generator' => 'hash_based', // или 'date_based'
     'optimization' => [
         'stream_upload' => true,

@@ -51,9 +51,13 @@ class LegacyFileMigration extends Model
         'migration_batch',
         'migrated_at',
         'error_message',
-        'has_duplicates'
+        'has_duplicates',
+        'file_modification_time',
     ];
 
+    protected $casts = [
+        'file_modification_time' => 'datetime',
+    ];
     // Константы статусов
     public const STATUS_PENDING = 'pending';
     public const STATUS_PROCESSING = 'processing';
@@ -78,6 +82,16 @@ class LegacyFileMigration extends Model
     public function uniqueFile(): BelongsTo
     {
         return $this->belongsTo(UniqueFile::class, "sha1_hash", "id");
+    }
+
+    public static function findLegacyFileMigrationByOriginalPath(
+        string $originalPath,
+        string $originalName
+    ): ?LegacyFileMigration {
+        return LegacyFileMigration::query()
+            ->where("original_path", $originalPath)
+            ->where("original_filename", $originalName)
+            ->first();
     }
 
     /**
@@ -111,14 +125,13 @@ class LegacyFileMigration extends Model
         return $this->status === self::STATUS_MIGRATED;
     }
 
-    public function hasDuplicate(): bool
+    public function hasDuplicates(): bool
     {
-        return (bool)$this->has_duplicates;
+        return $this->has_duplicates;
     }
 
     public function hasError(): bool
     {
         return $this->status === self::STATUS_ERROR;
     }
-
 }
