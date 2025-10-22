@@ -18,10 +18,11 @@ class CleanupFilesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'dedupler:files-cleanup
+    protected $signature = 'dedupler:prune
                             {--dry-run : Perform a dry run without deleting anything / Только просмотр без удаления}
                             {--force : Skip confirmation prompt / Пропустить подтверждение}
-                            {--remove-orphan-files : Remove files without morphed relationships}
+                            {--orphan-relations : Remove unexisted relations / Удалить несвязанные отношения}
+                            {--orphan-files : Remove unlinked files / Удалить несвязанные файлы}
                             {--chunk=1000 : Number of records process at a time / Кол-во записей для обработки за раз}';
 
     /**
@@ -29,7 +30,8 @@ class CleanupFilesCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Clean up orphaned files and relationships / Очистить несвязанные файлы и связи';
+    protected $description = 'Clean up orphaned files and relationships' .
+        ' / Удалить неактуальные связи, несвязанные файлы';
 
     /**
      * Execute the console command.
@@ -39,7 +41,8 @@ class CleanupFilesCommand extends Command
         DB::setDefaultConnection(config("dedupler.db_connection"));
         $dryRun = $this->option('dry-run');
         $force = $this->option('force');
-        $removeOrphanFiles = $this->option('remove-orphan-files');
+        $removeOrphanRelations = $this->option('orphan-relations');
+        $removeOrphanFiles = $this->option('orphan-files');
         $chunkSize = (int) $this->option('chunk');
 
         if ($dryRun) {
@@ -59,7 +62,9 @@ class CleanupFilesCommand extends Command
         }
 
         // Очистка связей
-        $this->cleanupOrphanedRelationships($dryRun, $chunkSize);
+        if ($removeOrphanRelations) {
+            $this->cleanupOrphanedRelationships($dryRun, $chunkSize);
+        }
 
         // Очистка файлов
         if ($removeOrphanFiles) {

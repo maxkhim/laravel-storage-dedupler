@@ -61,7 +61,6 @@ class DeduplerServiceProvider extends PackageServiceProvider
 
     protected function configureDeduplerDisk(): void
     {
-
         if (is_null(config('filesystems.disks.deduplicated'))) {
             config(
                 [
@@ -79,6 +78,8 @@ class DeduplerServiceProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         // Более подробная информация: https://github.com/spatie/laravel-package-tools
+
+        $this->mergeConfigFrom(__DIR__ . '/../../config/dedupler.php', static::$name);
 
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
@@ -140,7 +141,6 @@ class DeduplerServiceProvider extends PackageServiceProvider
                 }
             }
         }
-
         // Тестирование
         //Testable::mixin(new Testsdedupler);
     }
@@ -170,10 +170,11 @@ class DeduplerServiceProvider extends PackageServiceProvider
      */
     protected function getRoutes(): array
     {
-        return [
-            'web',
-            'api'
-        ];
+        $routes = ['web'];
+        if (config("dedupler.api.enabled")) {
+            $routes[] = 'api';
+        }
+        return $routes;
     }
 
 

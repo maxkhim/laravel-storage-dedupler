@@ -3,6 +3,7 @@
 namespace Maxkhim\Dedupler\Facades;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Facade;
 use Maxkhim\Dedupler\Contracts\FileSourceInterface;
 use Maxkhim\Dedupler\Models\Deduplicatable;

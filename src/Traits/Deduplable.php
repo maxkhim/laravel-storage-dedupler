@@ -39,7 +39,7 @@ trait Deduplable
      */
     public function storeUniqueFile(FileSourceInterface $fileSource, array $options = []): ?Deduplicatable
     {
-        return app('dedupler')->store($fileSource, $this, $options);
+        return Dedupler::store($fileSource, $this, $options);
     }
 
     /**
@@ -47,7 +47,7 @@ trait Deduplable
      */
     public function storeUploadedFile(UploadedFile $file, array $options = []): ?Deduplicatable
     {
-        return app('dedupler')->storeFromUploadedFile($file, $this, $options);
+        return Dedupler::storeFromUploadedFile($file, $this, $options);
     }
 
     /**
@@ -55,7 +55,7 @@ trait Deduplable
      */
     public function storeLocalFile(string $path, array $options = []): ?Deduplicatable
     {
-        return app('dedupler')->storeFromPath($path, $this, $options);
+        return Dedupler::storeFromPath($path, $this, $options);
     }
 
     /**
@@ -63,7 +63,7 @@ trait Deduplable
      */
     public function storeStreamFile($stream, string $filename, array $options = []): ?Deduplicatable
     {
-        return app('dedupler')->storeFromStream($stream, $filename, $this, $options);
+        return Dedupler::storeFromStream($stream, $filename, $this, $options);
     }
 
     /**
@@ -71,7 +71,7 @@ trait Deduplable
      */
     public function storeContentFile(string $content, string $filename, array $options = []): ?Deduplicatable
     {
-        return app('dedupler')->storeFromContent($content, $filename, $this, $options);
+        return Dedupler::storeFromContent($content, $filename, $this, $options);
     }
 
     /**
@@ -79,7 +79,7 @@ trait Deduplable
      */
     public function storeFilesBatch(array $fileSources, array $options = []): array
     {
-        return app('dedupler')->storeBatch($fileSources, $this, $options);
+        return Dedupler::storeBatch($fileSources, $this, $options);
     }
 
     /**
@@ -95,7 +95,7 @@ trait Deduplable
      */
     public function detachUniqueFile(string $fileHash): bool
     {
-        return app('dedupler')->detach($fileHash, $this);
+        return Dedupler::detach($fileHash, $this);
     }
 
     /**

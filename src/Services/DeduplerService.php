@@ -395,10 +395,10 @@ class DeduplerService implements FileStorageInterface
         }
 
         // Получаем все связи
-        $relations = Deduplicatable::query()->where('sha1_hash', $fileHash)->get();
+        $relationsQty = Deduplicatable::query()->where('sha1_hash', $fileHash)->count();
 
         // Если force = true или нет активных связей
-        if ($force || $relations->isEmpty()) {
+        if ($force || !$relationsQty) {
             // Удаляем физический файл
             Storage::disk($file->disk)->delete($file->path);
 

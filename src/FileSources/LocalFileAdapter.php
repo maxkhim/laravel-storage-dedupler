@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\File;
 use finfo;
 class LocalFileAdapter implements FileSourceInterface
 {
-    protected $path;
-    protected $originalName;
+    protected string $path;
+    protected string $originalName;
 
     public function __construct(string $path, string $originalName = null)
     {

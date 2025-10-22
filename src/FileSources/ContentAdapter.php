@@ -3,11 +3,12 @@
 namespace Maxkhim\Dedupler\FileSources;
 
 use Maxkhim\Dedupler\Contracts\FileSourceInterface;
+
 class ContentAdapter implements FileSourceInterface
 {
-    protected $content;
-    protected $originalName;
-    protected $mimeType;
+    protected string $content;
+    protected string $originalName;
+    protected ?string $mimeType;
 
     public function __construct(string $content, string $originalName, string $mimeType = null)
     {

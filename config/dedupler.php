@@ -18,7 +18,8 @@ return [
         'deduplicated' => [
             'driver' => 'local',
             'root' => env("DEDUPLER_DISK_PATH", storage_path('app/deduplicated')),
-            'visibility' => 'private'
+            'visibility' => 'private',
+            'url' => 'api/dedupler/v1/files',
         ],
     ],
     'path_generator' => 'hash_based', // или 'date_based'
@@ -27,7 +28,7 @@ return [
         'chunk_size' => 1024 * 1024, // 1MB chunks для больших файлов
     ],
     'api' => [
-        'enabled' => true,
+        'enabled' => env("DEDUPLER_REST_ENABLED", false),
         'middleware' => ['api'],
         'prefix' => 'api/dedupler/v1/files',
         'max_file_size' => 102400, // 100MB в килобайтах

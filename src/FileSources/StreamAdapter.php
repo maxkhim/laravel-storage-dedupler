@@ -7,9 +7,9 @@ use Maxkhim\Dedupler\Contracts\FileSourceInterface;
 class StreamAdapter implements FileSourceInterface
 {
     protected $stream;
-    protected $size;
-    protected $mimeType;
-    protected $originalName;
+    protected int $size;
+    protected ?string $mimeType;
+    protected string $originalName;
 
     public function __construct($stream, int $size, string $originalName, string $mimeType = null)
     {

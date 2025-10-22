@@ -12,10 +12,11 @@ Tired of seeing the same file stored multiple times? When users upload duplicate
 - 🔗 **Polymorphic Magic** - Attach files to any model with ease
 - 💾 **Storage Efficient** - Save significant disk space
 - 🎯 **Simple API** - Intuitive methods for attachment management
-- 🗃️ **Flexible Storage** - Works with any Laravel storage disk
-- ⚡ **Laravel Native** - Seamlessly integrates with Laravel's ecosystem
+- ⚡  **Laravel Native** - Seamlessly integrates with Laravel's ecosystem
 
 ## 🚀 Quick Start
+
+![dedupler-so-adapt.png](dedupler-so-adapt.png "Dedupler")
 
 ### 1. Install via Composer
 ```bash

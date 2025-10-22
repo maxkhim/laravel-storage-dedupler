@@ -7,7 +7,7 @@ use Maxkhim\Dedupler\Contracts\FileSourceInterface;
 
 class UploadedFileAdapter implements FileSourceInterface
 {
-    protected $uploadedFile;
+    protected UploadedFile $uploadedFile;
 
     public function __construct(UploadedFile $uploadedFile)
     {
