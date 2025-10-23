@@ -28,7 +28,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * @method static bool delete(string $fileHash, bool $force = false)
  * @method static bool exists(string $fileHash)
  * @method static string|null getUrl(string $fileHash)
- * @method static string|null getTemporaryUrl(string $fileHash, DateTimeInterface $expiration)
+ * @method static string|null getTemporaryUrl(string $fileHash, \DateTimeInterface $expiration)
  * @method static StreamedResponse|null streamDownload(string $fileHash)
  * @method static bool updatePivotStatus(string $fileHash, Model $model, string $status)
  * @method static mixed getFileRelations(string $fileHash)
