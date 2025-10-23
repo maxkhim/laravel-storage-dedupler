@@ -222,8 +222,7 @@ class DeduplerController extends Controller
             }
 
             // Получаем информацию о связанных моделях
-            $relations = Deduplicatable::query()->where('sha1_hash', $hash)->get();
-            $modelCounts = $relations->groupBy('deduplable_type')->map->count();
+            $relationsCount = Deduplicatable::query()->where('sha1_hash', $hash)->count();
 
             $fileInfo = [
                 'hash' => $file->id,
@@ -231,28 +230,15 @@ class DeduplerController extends Controller
                 'md5_hash' => $file->md5_hash,
                 'exists' => Storage::disk($file->disk)->exists($file->path),
                 'filename' => $file->filename,
-                'original_name' => $file->original_name,
                 'path' => $file->path,
                 'mime_type' => $file->mime_type,
                 'size' => $file->size,
                 'size_human' => FormatingHelper::formatBytes($file->size),
                 'disk' => $file->disk,
                 'status' => $file->status,
-                'url' => Dedupler::getUrl($file->id),
                 'created_at' => $file->created_at?->toISOString(),
                 'updated_at' => $file->updated_at?->toISOString(),
-                'relations_count' => $relations->count(),
-                'relations_by_type' => $modelCounts,
-                'relations' => $relations->map(function ($relation) {
-                    return [
-                        'id' => $relation->id,
-                        'deduplable_type' => $relation->deduplable_type,
-                        'deduplable_id' => $relation->deduplable_id,
-                        'status' => $relation->status,
-                        'original_name' => $relation->original_name,
-                        'created_at' => $relation->created_at?->toISOString(),
-                    ];
-                })->take(10) // Ограничиваем вывод для избежания перегрузки
+                'links_count' => $relationsCount,
             ];
 
             return response()->json([
@@ -301,6 +287,21 @@ class DeduplerController extends Controller
             $downloadName = $file->original_name ?: $file->filename;
 
             // Потоковая отдача для больших файлов
+
+            /*return response()->streamDownload(
+                function () use ($fullPath) {
+                    $handle = fopen($fullPath, "r") or abort(500);
+                    if ($handle) {
+                        while (!feof($handle)) {
+                            $buffer = fgets($handle, 4096);
+                            echo $buffer;
+                        }
+                        fclose($handle);
+                    }
+                },
+                $document->content_file_name,
+                ["Content-Type" => $documentMimeType]
+             */
             return $storageDisk->download(
                 $file->path,
                 $downloadName,

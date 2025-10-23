@@ -16,7 +16,7 @@ Tired of seeing the same file stored multiple times? When users upload duplicate
 
 ## 🚀 Quick Start
 
-![dedupler-so-adapt.png](dedupler-so-adapt.png "Dedupler")
+![dedupler-so-adapt.png](dedupler-so-adapt.png)
 
 ### 1. Install via Composer
 ```bash

@@ -16,27 +16,28 @@ Route::group(['prefix' => '/api/dedupler'], function () {
         ->name('api.dedupler.index');
 
     Route::prefix('/v1/files')->name('unique-files.')->group(function () {
-        // Загрузка одного файла
+        /*// Загрузка одного файла
         Route::post('/', [DeduplerController::class, 'store'])
             ->name('store');
 
         // Загрузка нескольких файлов
         Route::post('/batch', [DeduplerController::class, 'storeMultiple'])
             ->name('store-multiple');
-
+        */
         // Получение информации о файле
         Route::get('/{hash}', [DeduplerController::class, 'show'])
             ->name('show')
             ->where('hash', '[a-fA-F0-9]{40}');
+        /*
+                // Скачивание файла
+                Route::get('/{hash}/download', [DeduplerController::class, 'download'])
+                    ->name('download')
+                    ->where('hash', '[a-fA-F0-9]{40}');
 
-        // Скачивание файла
-        Route::get('/{hash}/download', [DeduplerController::class, 'download'])
-            ->name('download')
-            ->where('hash', '[a-fA-F0-9]{40}');
-
-        // Прямая отдача файла (для встраивания)
-        Route::get('/{hash}/stream', [DeduplerController::class, 'stream'])
-            ->name('stream')
-            ->where('hash', '[a-fA-F0-9]{40}');
+                // Прямая отдача файла (для встраивания)
+                Route::get('/{hash}/stream', [DeduplerController::class, 'stream'])
+                    ->name('stream')
+                    ->where('hash', '[a-fA-F0-9]{40}');
+        */
     });
 });

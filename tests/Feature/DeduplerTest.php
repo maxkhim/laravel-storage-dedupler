@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maxkhim\Dedupler\Facades\Dedupler;
+use Maxkhim\Dedupler\FileSources\LocalFileAdapter;
 use Maxkhim\Dedupler\Models\Article;
 use Maxkhim\Dedupler\Models\UniqueFile;
 use Mockery;
@@ -32,14 +33,16 @@ class DeduplerTest extends TestCase
      */
     public function itCanStoreFileFromUploadedFile()
     {
-        $this->assertNull(null);
+
         $article = Article::create();
-        //
+
         $file = UploadedFile::fake()->image('fake_uploaded_file.jpg', 100, 100);
         $hash = sha1($file->getContent());
         UniqueFile::query()->find($hash)?->delete();
 
-        $fileRelation = Dedupler::storeFromUploadedFile($file, $article, [
+        $uniqueFile = Dedupler::storeFromUploadedFile($file);
+
+        $fileRelation = Dedupler::attach($uniqueFile->id, $article, [
             'pivot' => ['status' => 'completed']
         ]);
 
@@ -61,17 +64,44 @@ class DeduplerTest extends TestCase
         );
     }
 
+
+
+    /**
+     * @testdox Возможность сохранения файла из локальной структуры (без связи)
+     * @test
+     */
+    public function itCanStoreOnlyFileFromLocalFile()
+    {
+        /** @var Article $article */
+        $article = Article::create();
+        $tempFile = tempnam(sys_get_temp_dir(), 'test');
+        file_put_contents($tempFile, Str::random(100));
+
+        $uniqueFile = Dedupler::storeFromPath($tempFile);
+
+        $this->assertTrue(
+            Storage::disk(config('dedupler.default_disk'))->exists($uniqueFile->path),
+            "File is not stored correctly at disk: " .
+            config('dedupler.default_disk') . ", file: " . $uniqueFile->path
+        );
+
+        unlink($tempFile);
+    }
+
     /**
      * @testdox Возможность сохранения файла из локальной структуры
      * @test
      */
     public function itCanStoreFileFromLocalFile()
     {
+        /** @var Article $article */
         $article = Article::create();
         $tempFile = tempnam(sys_get_temp_dir(), 'test');
         file_put_contents($tempFile, 'test content');
 
-        $fileRelation = Dedupler::storeFromPath($tempFile, $article, [
+        $file = Dedupler::storeFromPath($tempFile);
+
+        $fileRelation = Dedupler::attach($file->id, $article, [
             'original_name' => 'imported_file.txt'
         ]);
 
@@ -115,11 +145,15 @@ class DeduplerTest extends TestCase
         fwrite($stream, Str::random(100));//'stream content'
         rewind($stream);
 
+        $fileName = "stream_file" . date("YmdHis") . ".txt";
+
         $fileRelation = Dedupler::storeFromStream(
             $stream,
-            'stream_file.txt',
+            $fileName,
             $article,
-            ['mime_type' => 'text/plain']
+            [
+                'mime_type' => 'text/plain',
+            ]
         );
 
         $this->assertNotNull(
@@ -128,7 +162,7 @@ class DeduplerTest extends TestCase
         );
 
         $this->assertEquals(
-            'stream_file.txt',
+            $fileName,
             $fileRelation->file->original_name,
             "Incorrect file original_name"
         );
@@ -319,5 +353,4 @@ class DeduplerTest extends TestCase
         $isProcessingAfterRelease = Dedupler::isFileProcessing($quickHash);
         $this->assertFalse($isProcessingAfterRelease);
     }*/
-
 }

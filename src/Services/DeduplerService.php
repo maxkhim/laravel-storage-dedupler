@@ -26,14 +26,15 @@ class DeduplerService implements FileStorageInterface
         $this->config = config('dedupler');
     }
 
+
     /**
      * Основной метод для хранения файла из любого источника
      */
     public function store(
         FileSourceInterface $fileSource,
-        Model $model,
+        ?Model $model = null,
         array $options = []
-    ): ?Deduplicatable {
+    ): ?UniqueFile {
 
         if (!$fileSource->isValid()) {
             Log::warning('Invalid file source provided');
@@ -60,9 +61,9 @@ class DeduplerService implements FileStorageInterface
      */
     public function storeFromUploadedFile(
         UploadedFile $file,
-        Model $model,
+        ?Model $model = null,
         array $options = []
-    ): ?Deduplicatable {
+    ): ?UniqueFile {
         $fileSource = new UploadedFileAdapter($file);
         return $this->store($fileSource, $model, $options);
     }
@@ -70,7 +71,7 @@ class DeduplerService implements FileStorageInterface
     /**
      * Удобный метод для локальных файлов
      */
-    public function storeFromPath(string $path, Model $model, array $options = []): ?Deduplicatable
+    public function storeFromPath(string $path, ?Model $model = null, array $options = []): ?UniqueFile
     {
         $originalName = $options['original_name'] ?? basename($path);
         $fileSource = new LocalFileAdapter($path, $originalName);
@@ -83,9 +84,9 @@ class DeduplerService implements FileStorageInterface
     public function storeFromStream(
         $stream,
         string $filename,
-        Model $model,
+        ?Model $model = null,
         array $options = []
-    ): ?Deduplicatable {
+    ): ?UniqueFile {
         $mimeType = $options['mime_type'] ?? null;
         $size = $options['size'] ?? 0;
 
@@ -99,9 +100,9 @@ class DeduplerService implements FileStorageInterface
     public function storeFromContent(
         string $content,
         string $filename,
-        Model $model,
+        ?Model $model = null,
         array $options = []
-    ): ?Deduplicatable {
+    ): ?UniqueFile {
         $mimeType = $options['mime_type'] ?? null;
         $fileSource = new ContentAdapter($content, $filename, $mimeType);
         return $this->store($fileSource, $model, $options);
@@ -110,7 +111,7 @@ class DeduplerService implements FileStorageInterface
     /**
      * Пакетное сохранение файлов
      */
-    public function storeBatch(array $fileSources, Model $model, array $options = []): array
+    public function storeBatch(array $fileSources, ?Model $model = null, array $options = []): array
     {
         $results = [];
 
@@ -134,10 +135,10 @@ class DeduplerService implements FileStorageInterface
 
     protected function storeWithHash(
         FileSourceInterface $fileSource,
-        Model $model,
+        ?Model $model,
         string $disk,
         array $pivotAttributes
-    ): ?Deduplicatable {
+    ): ?UniqueFile {
         // Чтение файла и вычисление хэшей
         $content = $fileSource->getContent();
         $sha1Hash = sha1($content);
@@ -148,26 +149,32 @@ class DeduplerService implements FileStorageInterface
             ->find($sha1Hash);
 
         if ($existingFile) {
-            return $this->attachExistingFile($existingFile, $model, array_merge([
-                'original_name' => $fileSource->getOriginalName(),
-                'status' => 'completed',
-            ], $pivotAttributes));
+            if ($model) {
+                $this->attachExistingFile($existingFile, $model, array_merge([
+                    'original_name' => $fileSource->getOriginalName(),
+                    'status' => 'completed',
+                ], $pivotAttributes));
+            }
+            return $existingFile;
         }
 
         // Сохранение нового файла
         $uploadedFile = $this->saveNewFile($fileSource, $sha1Hash, $md5Hash, $disk, $content);
-        return $this->createFileModelLink($uploadedFile, $model, array_merge([
-            'original_name' => $fileSource->getOriginalName(),
-            'status' => 'completed',
-        ], $pivotAttributes));
+        if ($model) {
+            $this->createFileModelLink($uploadedFile, $model, array_merge([
+                'original_name' => $fileSource->getOriginalName(),
+                'status' => 'completed',
+            ], $pivotAttributes));
+        }
+        return $uploadedFile;
     }
 
     protected function storeWithStream(
         FileSourceInterface $fileSource,
-        Model $model,
+        ?Model $model,
         string $disk,
         array $pivotAttributes
-    ): ?Deduplicatable {
+    ): ?UniqueFile {
         $stream = $fileSource->getStream();
 
         try {
@@ -190,10 +197,14 @@ class DeduplerService implements FileStorageInterface
 
             if ($existingFile) {
                 fclose($stream);
-                return $this->attachExistingFile($existingFile, $model, array_merge([
-                    'original_name' => $fileSource->getOriginalName(),
-                    'status' => 'completed',
-                ], $pivotAttributes));
+                if ($model) {
+                    $this->attachExistingFile($existingFile, $model, array_merge([
+                        'original_name' => $fileSource->getOriginalName(),
+                        'status' => 'completed',
+                    ], $pivotAttributes));
+                }
+
+                return $existingFile;
             }
 
             // Возвращаемся к началу потока для сохранения
@@ -202,11 +213,14 @@ class DeduplerService implements FileStorageInterface
             // Сохранение через поток
             $uploadedFile = $this
                 ->saveNewFileFromStream($stream, $fileSource, $sha1Hash, $md5Hash, $disk);
-            return $this
-                ->createFileModelLink($uploadedFile, $model, array_merge([
-                    'original_name' => $fileSource->getOriginalName(),
-                    'status' => 'completed',
-                ], $pivotAttributes));
+            if ($model) {
+                $this
+                    ->createFileModelLink($uploadedFile, $model, array_merge([
+                        'original_name' => $fileSource->getOriginalName(),
+                        'status' => 'completed',
+                    ], $pivotAttributes));
+            }
+            return $uploadedFile;
         } catch (\Exception $e) {
             if (is_resource($stream)) {
                 fclose($stream);
@@ -229,18 +243,19 @@ class DeduplerService implements FileStorageInterface
         Storage::disk($disk)->put($path, $content);
 
         // Создание записи
-        return UniqueFile::create([
-            'id' => $sha1Hash,
-            'sha1_hash' => $sha1Hash,
-            'md5_hash' => $md5Hash,
-            'filename' => $filename,
-            'path' => $path,
-            'mime_type' => $fileSource->getMimeType(),
-            'size' => $fileSource->getSize(),
-            'status' => 'completed',
-            'disk' => $disk,
-            'original_name' => $fileSource->getOriginalName(),
-        ]);
+        return UniqueFile::query()
+            ->create([
+                'id' => $sha1Hash,
+                'sha1_hash' => $sha1Hash,
+                'md5_hash' => $md5Hash,
+                'filename' => $filename,
+                'path' => $path,
+                'mime_type' => $fileSource->getMimeType(),
+                'size' => Storage::disk($disk)->size($path),
+                'status' => 'completed',
+                'disk' => $disk,
+                'original_name' => $fileSource->getOriginalName(),
+            ]);
     }
 
     protected function saveNewFileFromStream(
@@ -368,7 +383,7 @@ class DeduplerService implements FileStorageInterface
         ], $pivotAttributes));
     }
 
-    public function detach(string $fileHash, Model $model): bool
+    public function detach(string $fileHash, Model $model, $removeOrphan = true): bool
     {
         $deleted = Deduplicatable::query()->where('sha1_hash', $fileHash)
             ->where('deduplable_type', get_class($model))
@@ -379,7 +394,7 @@ class DeduplerService implements FileStorageInterface
         $remainingRelations = Deduplicatable::query()->where('sha1_hash', $fileHash)->count();
 
         // Если связей больше нет, удаляем файл
-        if ($remainingRelations === 0) {
+        if ($remainingRelations === 0 && $removeOrphan) {
             $this->deleteFileRecord($fileHash);
         }
 
