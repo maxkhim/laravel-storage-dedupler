@@ -3,6 +3,7 @@
 namespace Maxkhim\Dedupler\Models;
 
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $path Путь к файлу
  * @property string $mime_type MIME-тип файла
  * @property int $size Размер файла в байтах
- * @property string $status Статус файла (например: active, deleted)
+ * @property string $status Статус файла (например: 'pending','processing','completed','failed')
  * @property string $disk Диск, на котором хранится файл
  * @property string $original_name Оригинальное имя файла
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Deduplicatable> $deduplableModels
@@ -29,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class UniqueFile extends Model
 {
+    use HasFactory;
+
     protected $table = 'dedupler_unique_files';
     protected $keyType = 'string';
     public $incrementing = false;
@@ -45,6 +48,11 @@ class UniqueFile extends Model
         'disk',
         'original_name'
     ];
+
+    public const STATUS_PENDING = 'pending';       // Ожидает обработки
+    public const STATUS_PROCESSING = 'processing'; // В процессе обработки
+    public const STATUS_COMPLETED = 'completed';   // Обработка завершена
+    public const STATUS_FAILED = 'failed';         // Ошибка при обработке
 
     protected $casts = [
         'size' => 'integer',

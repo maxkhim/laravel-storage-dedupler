@@ -3,3 +3,4 @@
 /.idea/*
 /.idea
 /.php-cs-fixer.cache
+/.package-ext-info

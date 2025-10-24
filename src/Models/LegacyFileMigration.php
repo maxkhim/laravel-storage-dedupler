@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Maxkhim\Dedupler\Commands\Traits\CommonMigrationTrait;
+use Maxkhim\Dedupler\Factories\LegacyFileMigrationFactory;
 use Maxkhim\Dedupler\Traits\Deduplable;
 
 /**
@@ -24,10 +27,13 @@ use Maxkhim\Dedupler\Traits\Deduplable;
  * @property string $sha1_hash Хэш файла (SHA1)
  * @property int $file_size Размер файла в байтах
  * @property string $mime_type MIME-тип файла
+ * @property string $status Статус миграции ('pending','migrated','error','skipped')
  * @property string $migration_strategy Стратегия миграции (copy/move/link)
  * @property int $migration_batch Номер пакета миграции
  * @property string $error_message Сообщение об ошибке при миграции
  * @property bool $has_duplicates Флаг наличия дубликатов
+ * @property Carbon $migrated_at Дата миграции
+ * @property UniqueFile $uniqueFile Дедуплицированный файл
  *
  * @see UniqueFile Связанная модель уникальных файлов
  * @see Deduplable Трейт для работы с дедупликацией
@@ -37,6 +43,7 @@ class LegacyFileMigration extends Model
 {
     use HasFactory;
     use Deduplable;
+    use CommonMigrationTrait;
 
     protected $table = 'dedupler_legacy_file_migrations';
 
@@ -52,19 +59,19 @@ class LegacyFileMigration extends Model
         'migrated_at',
         'error_message',
         'has_duplicates',
-        'file_modification_time',
+        'file_modificated_at',
     ];
 
+
     protected $casts = [
-        'file_modification_time' => 'datetime',
+        'file_modificated_at' => 'datetime',
     ];
     // Константы статусов
     public const STATUS_PENDING = 'pending';
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_MIGRATED = 'migrated';
-    public const STATUS_DUPLICATE = 'duplicate';
     public const STATUS_ERROR = 'error';
-    public const STATUS_SKIPPED = 'skipped';
+
 
     // Константы стратегий
     public const STRATEGY_COPY = 'copy';
@@ -107,11 +114,6 @@ class LegacyFileMigration extends Model
         return $query->where('status', self::STATUS_MIGRATED);
     }
 
-    public function scopeDuplicates($query)
-    {
-        return $query->where('status', self::STATUS_DUPLICATE);
-    }
-
     /**
      * Хелпер-методы для проверки статусов
      */
@@ -133,5 +135,71 @@ class LegacyFileMigration extends Model
     public function hasError(): bool
     {
         return $this->status === self::STATUS_ERROR;
+    }
+
+    public function copyLegacyFileToUniqueFile(): UniqueFile
+    {
+        $existingFile = UniqueFile::query()->find($this->sha1_hash);
+        if ($existingFile) {
+            $this->has_duplicates = true;
+            $this->status = self::STATUS_PROCESSING;
+            $this->attachUniqueFile($this->sha1_hash);
+            LegacyFileMigration::query()
+                ->where("sha1_hash", "=", $this->sha1_hash)
+                ->update(["has_duplicates" => true]);
+        } else {
+            $existingFile = $this->storeLocalFile($this->original_path . "/" . $this->original_filename);
+            if (!$existingFile) {
+                $this->status = LegacyFileMigration::STATUS_ERROR;
+            } else {
+                $this->status = self::STATUS_PROCESSING;
+            }
+        }
+        $this->save();
+        return $existingFile;
+    }
+
+    public function replaceLegacyFileWithSymlinkToUniqueFile(): bool
+    {
+        if (!$this->uniqueFile) {
+            return false;
+        }
+
+        $storageFile = $this->uniqueFile;
+        $originalPath = $this->original_path . "/" . $this->original_filename;
+
+        $result = false;
+        try {
+            $storagePath = Storage::disk($storageFile->disk)->path($storageFile->path);
+            if (is_link($originalPath)) {
+                throw new \Exception("Is already symlink: " . $originalPath);
+            }
+
+            if (!is_file($storagePath)) {
+                throw new \Exception("File doesn't exists: " . $storagePath);
+            }
+
+            $unlinkResult = unlink($originalPath);
+            $symlinkResult = symlink($storagePath, $originalPath);
+            $result = $unlinkResult && $symlinkResult;
+
+            if (!$result) {
+                throw new \Exception("Could not replace legacy file");
+            } else {
+                $this->status = LegacyFileMigration::STATUS_MIGRATED;
+                $this->migrated_at = Carbon::now();
+            }
+        } catch (\Throwable $e) {
+            $result = false;
+            $this->status = LegacyFileMigration::STATUS_ERROR;
+            $this->error_message = $e->getMessage();
+        }
+        $this->save();
+        return $result;
+    }
+
+    protected static function newFactory(): LegacyFileMigrationFactory
+    {
+        return LegacyFileMigrationFactory::new();
     }
 }

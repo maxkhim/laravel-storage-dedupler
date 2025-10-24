@@ -23,7 +23,7 @@ interface FileStorageInterface
         ?Model $model = null,
         array $options = []
     ): ?UniqueFile;
-    public function storeFromPath(string $path, Model $model, array $options = []): ?UniqueFile;
+    public function storeFromPath(string $path, ?Model $model = null, array $options = []): ?UniqueFile;
     public function storeFromStream(
         $stream,
         string $filename,

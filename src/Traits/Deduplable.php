@@ -37,7 +37,7 @@ trait Deduplable
     /**
      * Сохранить файл из любого источника
      */
-    public function storeUniqueFile(FileSourceInterface $fileSource, array $options = []): ?Deduplicatable
+    public function storeUniqueFile(FileSourceInterface $fileSource, array $options = []): ?UniqueFile
     {
         return Dedupler::store($fileSource, $this, $options);
     }
@@ -45,7 +45,7 @@ trait Deduplable
     /**
      * Сохранить UploadedFile
      */
-    public function storeUploadedFile(UploadedFile $file, array $options = []): ?Deduplicatable
+    public function storeUploadedFile(UploadedFile $file, array $options = []): ?UniqueFile
     {
         return Dedupler::storeFromUploadedFile($file, $this, $options);
     }
@@ -53,7 +53,7 @@ trait Deduplable
     /**
      * Сохранить локальный файл
      */
-    public function storeLocalFile(string $path, array $options = []): ?Deduplicatable
+    public function storeLocalFile(string $path, array $options = []): ?UniqueFile
     {
         return Dedupler::storeFromPath($path, $this, $options);
     }
@@ -61,7 +61,7 @@ trait Deduplable
     /**
      * Сохранить из потока
      */
-    public function storeStreamFile($stream, string $filename, array $options = []): ?Deduplicatable
+    public function storeStreamFile($stream, string $filename, array $options = []): ?UniqueFile
     {
         return Dedupler::storeFromStream($stream, $filename, $this, $options);
     }
@@ -69,7 +69,7 @@ trait Deduplable
     /**
      * Сохранить из сырого контента
      */
-    public function storeContentFile(string $content, string $filename, array $options = []): ?Deduplicatable
+    public function storeContentFile(string $content, string $filename, array $options = []): ?UniqueFile
     {
         return Dedupler::storeFromContent($content, $filename, $this, $options);
     }

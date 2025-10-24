@@ -4,12 +4,9 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maxkhim\Dedupler\Facades\Dedupler;
-use Maxkhim\Dedupler\FileSources\LocalFileAdapter;
-use Maxkhim\Dedupler\Models\Article;
 use Maxkhim\Dedupler\Models\UniqueFile;
 use Mockery;
 

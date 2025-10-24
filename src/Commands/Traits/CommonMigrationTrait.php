@@ -27,7 +27,7 @@ trait CommonMigrationTrait
             "file_size" => $fileSize,
             "mime_type" => $mimeType,
             "status" => LegacyFileMigration::STATUS_PENDING,
-            "file_modification_time" => $fileUpdatedAt,
+            "file_modificated_at" => $fileUpdatedAt,
         ];
 
         if (!$dryRun) {

@@ -13,6 +13,7 @@ use Maxkhim\Dedupler\Models\Article;
 use Maxkhim\Dedupler\Models\Deduplicatable;
 use Maxkhim\Dedupler\Models\LegacyFileMigration;
 use Maxkhim\Dedupler\Models\UniqueFile;
+use Maxkhim\Dedupler\Providers\DeduplerServiceProvider;
 
 class CheckDeduplerStorageCommand extends Command
 {
@@ -79,44 +80,13 @@ class CheckDeduplerStorageCommand extends Command
 
         if ($packageIsReady) {
             $this->info('✅ It seems package is ready to use!');
+            $repoUrl = "https://github.com/" .
+                DeduplerServiceProvider::$vendor .
+                "/" . DeduplerServiceProvider::$name;
+            $this->alert('Please, star our repo on GitHub! : ' . $repoUrl);
+
         } else {
             $this->error('It seems package is NOT ready to use');
         }
-
-        exit();
-        /*
-                for ($id = 1; $id <= 1000; $id++) {
-                    $article = Article::query()
-                        ->find($id);
-
-                    $fileName = $article->title;
-
-                    for ($i = 1; $i <= 10; $i++) {
-                        $content = (string)round(rand(1, 5));
-                        $fileRelation = $article->storeContentFile($content, $fileName . "-" . $i . '.txt', [
-                            'mime_type' => 'text/plain'
-                        ]);
-                    }
-                    // 4. Из сырого контента
-
-        */
-
-
-        //$this->alert($fileRelation->file->size); // Размер файла
-        //$this->info($fileRelation->original_name);  // Оригинальное имя для этой связи
-        //$this->info($fileRelation->status); // Статус для этой связи
-        // Загрузка с дополнительными параметрами
-        /*$fileRelation = $article->storeUniqueFile($file, [
-            'disk' => 's3',
-            'pivot' => [
-                'status' => 'processing',
-                'original_name' => 'profile_photo.jpg'
-            ]
-        ]);*/
-        /*  unset($article, $fileName);
-        }
-
-
-        $this->line("");*/
     }
 }

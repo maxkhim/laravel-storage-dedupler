@@ -6,7 +6,7 @@ use Illuminate\Filesystem\Filesystem;
 use Maxkhim\Dedupler\Commands\CheckDeduplerStorageCommand;
 use Maxkhim\Dedupler\Commands\CleanupFilesCommand;
 use Maxkhim\Dedupler\Commands\CreateDummyFilesCommand;
-use Maxkhim\Dedupler\Commands\DeduplerInitCommand;
+use Maxkhim\Dedupler\Commands\DeduplerInstallCommand;
 use Maxkhim\Dedupler\Commands\FileStorageStatsCommand;
 use Maxkhim\Dedupler\Commands\MigrateLegacyFilesCommand;
 use Maxkhim\Dedupler\Commands\RollbackLegacyFilesCommand;
@@ -28,11 +28,18 @@ class DeduplerServiceProvider extends PackageServiceProvider
      * Имя пакета.
      */
     public static string $name = 'dedupler';
+    public static string $vendor = 'maxkhim';
 
     /**
      * Пространство имен для шаблонов.
      */
     public static string $viewNamespace = 'dedupler';
+
+
+    public static function getMigrationPath(): string
+    {
+        return __DIR__ . '/../../database/migrations';
+    }
 
     /**
      * Настраивает подключение к базе данных, если оно не определено.
@@ -83,24 +90,12 @@ class DeduplerServiceProvider extends PackageServiceProvider
 
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
-            ->hasRoutes($this->getRoutes())
-            ->hasInstallCommand(function (InstallCommand $command) {
-                $command
-                    //->publishConfigFile()
-                    //->publishMigrations()
-                    //->askToRunMigrations()
-                    ->askToStarRepoOnGitHub(':vendor_slug/:package_slug')
-                ;
-            });
+            ->hasRoutes($this->getRoutes());
 
         $configFileName = $package->shortName();
 
         if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
             $package->hasConfigFile($configFileName);
-        }
-
-        if (file_exists($package->basePath('/../database/migrations'))) {
-            $package->hasMigrations($this->getMigrations());
         }
 
         if (file_exists($package->basePath('/../resources/lang'))) {
@@ -114,10 +109,10 @@ class DeduplerServiceProvider extends PackageServiceProvider
 
     /**
      * Выполняется после регистрации пакета.
-     * Пока не содержит реализации.
      */
     public function packageRegistered(): void
     {
+        $this->loadMigrationsFrom(self::getMigrationPath());
         $this->app->singleton(FileStorageInterface::class, DeduplerService::class);
         $this->app->bind('dedupler', FileStorageInterface::class);
         $this->configureDBConnection();
@@ -156,7 +151,7 @@ class DeduplerServiceProvider extends PackageServiceProvider
             CheckDeduplerStorageCommand::class,
             CleanupFilesCommand::class,
             FileStorageStatsCommand::class,
-            DeduplerInitCommand::class,
+            DeduplerInstallCommand::class,
             //CreateDummyFilesCommand::class,
             MigrateLegacyFilesCommand::class,
             RollbackLegacyFilesCommand::class,
@@ -175,18 +170,5 @@ class DeduplerServiceProvider extends PackageServiceProvider
             $routes[] = 'api';
         }
         return $routes;
-    }
-
-
-    /**
-     * Возвращает массив миграций пакета.
-     *
-     * @return array<string>
-     */
-    protected function getMigrations(): array
-    {
-        return [
-            'create_dedupler_table',
-        ];
     }
 }
