@@ -12,8 +12,6 @@ use Spatie\LaravelPackageTools\Commands\Concerns\AskToStarRepoOnGitHub;
 
 class DeduplerInstallCommand extends Command
 {
-    use AskToStarRepoOnGitHub;
-
     /**
      * Command signature
      *
