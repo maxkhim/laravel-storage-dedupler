@@ -1,5 +1,5 @@
 {
-  "name": "maxkhim/dedupler",
+  "name": "maxkhim/laravel-storage-dedupler",
   "description": "Модуль хранения уникальных файлов",
   "license": "MIT",
   "authors": [
