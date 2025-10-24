@@ -1,6 +1,6 @@
 {
   "name": "maxkhim/laravel-storage-dedupler",
-  "description": "Модуль хранения уникальных файлов",
+  "description": "Module for Laravel 10+ for deduplication of files in storage",
   "license": "MIT",
   "authors": [
     {
