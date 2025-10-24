@@ -86,15 +86,15 @@ class DeduplerServiceProvider extends PackageServiceProvider
     {
         // Более подробная информация: https://github.com/spatie/laravel-package-tools
 
-        $this->mergeConfigFrom(__DIR__ . '/../../config/dedupler.php', static::$name);
+        $this->mergeConfigFrom(__DIR__ . '/../../config/dedupler.php', "dedupler");
 
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
             ->hasRoutes($this->getRoutes());
 
-        $configFileName = $package->shortName();
+        $configFileName = "dedupler";
 
-        if (file_exists($package->basePath("/../config/{$configFileName}.php"))) {
+        if (file_exists($package->basePath("/../config/dedupler.php"))) {
             $package->hasConfigFile($configFileName);
         }
 
