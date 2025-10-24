@@ -89,8 +89,8 @@ class DeduplerServiceProvider extends PackageServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/dedupler.php', "dedupler");
 
         $package->name(static::$name)
-            ->hasCommands($this->getCommands())
-            ->hasRoutes($this->getRoutes());
+            ->hasCommands($this->getCommands());
+        //->hasRoutes($this->getRoutes());
 
         $configFileName = "dedupler";
 
@@ -136,6 +136,8 @@ class DeduplerServiceProvider extends PackageServiceProvider
                 }
             }
         }
+
+        $this->loadRoutesFrom(__DIR__ . '/../../routes/api.php');
         // Тестирование
         //Testable::mixin(new Testsdedupler);
     }
