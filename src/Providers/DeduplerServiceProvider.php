@@ -27,7 +27,7 @@ class DeduplerServiceProvider extends PackageServiceProvider
     /**
      * Имя пакета.
      */
-    public static string $name = 'dedupler';
+    public static string $name = 'laravel-storage-dedupler';
     public static string $vendor = 'maxkhim';
 
     /**
