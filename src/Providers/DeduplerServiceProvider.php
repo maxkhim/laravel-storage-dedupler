@@ -165,9 +165,8 @@ class DeduplerServiceProvider extends PackageServiceProvider
      */
     protected function getRoutes(): array
     {
-        $routes = ['web'];
         if (config("dedupler.api.enabled")) {
-            $routes[] = 'api';
+            $routes[] = __DIR__ . '/../../routes/api.php';
         }
         return $routes;
     }
