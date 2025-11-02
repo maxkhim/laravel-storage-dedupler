@@ -1,4 +1,8 @@
-# Dedupler
+# Dedupler - Laravel package prevent's file duplications
+
+[![Latest Version](https://img.shields.io/packagist/v/maxkhim/laravel-storage-dedupler.svg?style=flat&label=Packagist&logo=packagist&logoColor=ffffff)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
+[![Laravel](https://img.shields.io/badge/Laravel-10+-007ec6.svg?logo=laravel&logoColor=ffffff)](https://laravel.com)
+[![License](https://img.shields.io/packagist/l/maxkhim/laravel-storage-dedupler.svg?color=007ec6&label=License)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
 
 ### Stop storing duplicate files in your Laravel application.
 
@@ -19,6 +23,14 @@ Tired of seeing the same file stored multiple times? When users upload duplicate
 ### 1. Install via Composer
 ```bash
 composer require maxkhim/laravel-storage-dedupler
+```
+
+####  (Optional) Analyse legacy storage directory 
+
+Finds duplicate files by SHA1 hash in directory and subdirectories and calculate potential disk space savings
+
+```bash
+php artisan dedupler:analyse-legacy /absolute/path/to/legacy/storage/directory
 ```
 
 ### 2. Init package

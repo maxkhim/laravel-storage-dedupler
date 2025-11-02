@@ -3,6 +3,7 @@
 namespace Maxkhim\Dedupler\Providers;
 
 use Illuminate\Filesystem\Filesystem;
+use Maxkhim\Dedupler\Commands\AnalyseLegacyFilesCommand;
 use Maxkhim\Dedupler\Commands\CheckDeduplerStorageCommand;
 use Maxkhim\Dedupler\Commands\CleanupFilesCommand;
 use Maxkhim\Dedupler\Commands\CreateDummyFilesCommand;
@@ -155,6 +156,7 @@ class DeduplerServiceProvider extends PackageServiceProvider
             FileStorageStatsCommand::class,
             DeduplerInstallCommand::class,
             //CreateDummyFilesCommand::class,
+            AnalyseLegacyFilesCommand::class,
             MigrateLegacyFilesCommand::class,
             RollbackLegacyFilesCommand::class,
         ];
