@@ -44,14 +44,13 @@ class CheckDeduplerStorageCommand extends Command
 
         $packageIsReady = true;
         try {
-            DB::connection(config('dedupler.connection'))
-                ->select('select 1');
-            $this->info('✅ Database connected!');
+            $version = DB::connection(config('dedupler.db_connection'))
+                ->select('select version() as vrs;');
+            $this->info('✅ Database connected: ' . $version[0]->vrs . '!');
         } catch (\Throwable $e) {
             $packageIsReady = false;
             $this->error("DB connection error: " . $e->getMessage());
         }
-
 
         try {
             $uniqueFiles = UniqueFile::query()->count();
@@ -84,7 +83,6 @@ class CheckDeduplerStorageCommand extends Command
                 DeduplerServiceProvider::$vendor .
                 "/" . DeduplerServiceProvider::$name;
             $this->alert('Please, star our repo on GitHub! : ' . $repoUrl);
-
         } else {
             $this->error('It seems package is NOT ready to use');
         }

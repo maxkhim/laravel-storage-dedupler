@@ -1,6 +1,6 @@
 {
   "name": "maxkhim/laravel-storage-dedupler",
-  "description": "Module for Laravel 10+ for deduplication of files in storage",
+  "description": "Laravel package for deduplication files in storage and analyze potential disk space savings",
   "license": "MIT",
   "authors": [
     {
