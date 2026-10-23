@@ -20,6 +20,16 @@ return [
             'root' => env("DEDUPLER_DISK_PATH", storage_path('app/deduplicated')),
             'visibility' => 'private',
             'url' => 'api/dedupler/v1/files',
+            'permissions' => [
+                'file' => [
+                    'public' => 0664,
+                    'private' => 0664,
+                ],
+                'dir' => [
+                    'public' => 0775,
+                    'private' => 0775,
+                ],
+            ],
         ],
     ],
     'path_generator' => 'hash_based', // или 'date_based'
