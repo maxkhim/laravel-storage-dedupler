@@ -2,6 +2,12 @@
 
 Changes of `maxkhim/laravel-storage-dedupler` is documented here
 
+
+## 1.0.3 - 2026-10-23
+
+- Laravel 13 support
+- Default storage disk permissions
+
 ## 1.0.2 - 2025-11-14
 
 - Bug fixed: Error on duplicate index when using PostgreSQL
