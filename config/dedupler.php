@@ -19,7 +19,7 @@ return [
             'driver' => 'local',
             'root' => env("DEDUPLER_DISK_PATH", storage_path('app/deduplicated')),
             'visibility' => 'private',
-            'url' => 'api/dedupler/v1/files',
+            'url' => '/api/dedupler/v1/files',
             'permissions' => [
                 'file' => [
                     'public' => 0664,
