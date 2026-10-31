@@ -2,6 +2,7 @@
 
 [![Latest Version](https://img.shields.io/packagist/v/maxkhim/laravel-storage-dedupler.svg?style=flat&label=Packagist&logo=packagist&logoColor=ffffff)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
 [![Laravel](https://img.shields.io/badge/Laravel-10+-007ec6.svg?logo=laravel&logoColor=ffffff)](https://laravel.com)
+[![Downloads](https://img.shields.io/packagist/dt/maxkhim/laravel-storage-dedupler.svg?style=flat-square)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
 [![License](https://img.shields.io/packagist/l/maxkhim/laravel-storage-dedupler.svg?color=007ec6&label=License)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
 
 ### Stop storing duplicate files in your Laravel application.
