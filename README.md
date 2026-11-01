@@ -19,6 +19,8 @@ Tired of seeing the same file stored multiple times? When users upload duplicate
 - 🎯 **Simple API** - Intuitive methods for attachment management
 - ⚡  **Laravel Native** - Seamlessly integrates with Laravel's ecosystem
 
+![dedupler-banner.jpg](dedupler-banner.jpg)
+
 ## 🚀 Quick Start
 
 ### 1. Install via Composer
