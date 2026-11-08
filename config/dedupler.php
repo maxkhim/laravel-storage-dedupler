@@ -56,4 +56,5 @@ return [
         'chunk_size' => 1048576, // 1MB для потоковой передачи
         'cache_control' => 'public, max-age=31536000',
     ],
+    'remove_orphan_on_detach' => env('DEDUPLER_REMOVE_ORPHAN_ON_DETACH', true),
 ];

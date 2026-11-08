@@ -383,8 +383,10 @@ class DeduplerService implements FileStorageInterface
         ], $pivotAttributes));
     }
 
-    public function detach(string $fileHash, Model $model, $removeOrphan = true): bool
+    public function detach(string $fileHash, Model $model, ?bool $removeOrphan = null): bool
     {
+        $removeOrphan ??= $this->config['remove_orphan_on_detach'];
+
         $deleted = Deduplicatable::query()->where('sha1_hash', $fileHash)
             ->where('deduplable_type', get_class($model))
             ->where('deduplable_id', $model->getKey())
