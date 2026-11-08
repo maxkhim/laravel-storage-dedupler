@@ -2,6 +2,10 @@
 
 Changes of `maxkhim/laravel-storage-dedupler` is documented here
 
+## 1.0.6 - 2026-11-08
+
+- Configurable behavior of the last linked file via detach: .env DEDUPLER_REMOVE_ORPHAN_ON_DETACH
+
 
 ## 1.0.3 - 2026-10-23
 
