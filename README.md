@@ -42,7 +42,6 @@ This command make all necessary migrations,
 and verifies application configuration (storage, models, etc.) to ensure the package is ready to use
 ```bash
 php artisan dedupler:install
-php artisan dedupler:check
 ```
 
 ## 🔧 How to use
@@ -141,17 +140,11 @@ DEDUPLER_REMOVE_ORPHAN_ON_DETACH=false
 
 Deduplication is only half the battle. When you delete a model (like a Post or User), the physical file might remain in your storage, becoming an "orphan". Over time, these orphaned files silently eat up your disk space.
 
-Dedupler ships with a powerful, memory-safe garbage collector to keep your storage perfectly clean:
+Dedupler ships with a powerful, garbage collector to keep your storage perfectly clean:
 
 ```bash
-# 1. Always preview what will be deleted (Safe mode)
-php artisan dedupler:prune --dry-run
-
-# 2. Execute the cleanup (Removes both DB relations and physical files)
-php artisan dedupler:prune --orphan-relations --orphan-files
-
-# 3. Automate it (Add to your scheduler)
-php artisan dedupler:prune --force --chunk=500
+# Example: Always preview what will be deleted (Safe mode)
+php artisan dedupler:prune --orphan-relations --orphan-files --dry-run
 ```
 
 ## 🛣️ API Reference
