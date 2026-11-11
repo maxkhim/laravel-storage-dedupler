@@ -119,27 +119,35 @@ $file1->id === $file2->id; // true - same database record and same file in stora
 
 ### 3. Attach existing files to models by SHA1 hash
 
-```php
-$post->attachUniqueFile($sha1_hash)
-```
+If you already know the SHA-1 hash of a file (e.g., from a previous upload or an API response), you can attach it directly to any model without re-uploading the file.
 
-OR 
+> Note: The file must already exist in the Dedupler storage.
 
 ```php
-Dedupler::attach(string $fileHash, Model $model, array $pivotAttributes = [])
+// Using the trait on your model
+$post->attachUniqueFile($sha1_hash);
+
+// Or via the Facade
+Dedupler::attach(string $fileHash, Model $model, array $pivotAttributes = []);
 ```
 
 ### 4. Detach unique files from models
-
+Remove the association between a model and a file. 
+The physical file remains in storage and is only deleted when no other models reference it (depending on your garbage collection settings).
 ```php
-$post->detachUniqueFile($sha1_hash)
+// Using the trait
+$post->detachUniqueFile($sha1_hash);
+
+// Or via the Facade
+Dedupler::detach(string $fileHash, Model $model);
 ```
 
-OR
 
-```php
-Dedupler::detach(string $fileHash, Model $model)
-```
+### Ecosystem
+
+Dedupler is designed to integrate seamlessly with popular Laravel packages. Here are the integration:
+
+- [Filament Plugin](https://github.com/maxkhim/filament-dedupler-uploader) A ready-to-use Filament form component for deduplicated file uploads.
 
 ### 🧹 Zero-Maintenance Cleanup (Enabled by Default)
 
