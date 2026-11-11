@@ -117,11 +117,28 @@ $file2 = Dedupler::storeFromUploadedFile($sameFile);
 $file1->id === $file2->id; // true - same database record and same file in storage
 ```
 
+### 3. Attach existing files to models by SHA1 hash
 
-### 3. Detach unique files from models
+```php
+$post->attachUniqueFile($sha1_hash)
+```
+
+OR 
+
+```php
+Dedupler::attach(string $fileHash, Model $model, array $pivotAttributes = [])
+```
+
+### 4. Detach unique files from models
 
 ```php
 $post->detachUniqueFile($sha1_hash)
+```
+
+OR
+
+```php
+Dedupler::detach(string $fileHash, Model $model)
 ```
 
 ### 🧹 Zero-Maintenance Cleanup (Enabled by Default)
@@ -146,6 +163,10 @@ Dedupler ships with a powerful, garbage collector to keep your storage perfectly
 # Example: Always preview what will be deleted (Safe mode)
 php artisan dedupler:prune --orphan-relations --orphan-files --dry-run
 ```
+
+## ❤️ Support the Project
+
+If Dedupler saved you disk space, cloud costs, or just a few hours of debugging, consider giving the repository a star ⭐. It’s the best way to show your appreciation and help other developers discover this package. Also, you can make an issue.
 
 ## 🛣️ API Reference
 
