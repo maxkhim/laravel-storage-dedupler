@@ -162,4 +162,28 @@ class DeduplerUniqueFileTest extends TestCase
         $this->assertTrue($results[0]->exists);
         $this->assertEquals('completed', $results[0]->status);
     }
+
+    /**
+     * @testdox Race condition: конкурентная загрузка одного и того же файла возвращает существующую запись
+     * @test
+     */
+    public function itHandlesRaceConditionOnDuplicateUpload()
+    {
+        $file = UploadedFile::fake()->create('document.pdf', 50);
+        $hash = sha1($file->getContent());
+
+        // Удаляем на всякий случай
+        UniqueFile::query()->where('id', $hash)->delete();
+
+        // Последовательные вызовы (в реальности — два HTTP-запроса одновременно)
+        $first = Dedupler::storeFromUploadedFile($file);
+        $second = Dedupler::storeFromUploadedFile($file);
+
+        $this->assertNotNull($first, 'First upload should not return null');
+        $this->assertNotNull($second, 'Second upload should not return null');
+        $this->assertEquals($first->id, $second->id, 'Both uploads should return the same UniqueFile');
+
+        // Убедимся, что запись в БД одна
+        $this->assertEquals(1, UniqueFile::query()->where('id', $hash)->count(), 'Only one record should exist in DB');
+    }
 }
