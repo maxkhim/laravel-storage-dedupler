@@ -24,10 +24,11 @@ trait Deduplable
      */
     public function uniqueFiles()
     {
-        return $this->belongsToMany(
+        return $this->morphToMany(
             UniqueFile::class,
+            'deduplable',
             Deduplicatable::class,
-            'deduplable_id',
+            null,
             'sha1_hash',
             'id',
             'id'
