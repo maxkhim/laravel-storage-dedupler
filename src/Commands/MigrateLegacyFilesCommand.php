@@ -79,7 +79,7 @@ class MigrateLegacyFilesCommand extends Command
 
         $progressBar = $this->output->createProgressBar($totalFiles);
         $progressBar->setFormat("%current%/%max% [%bar%] %percent:3s%% %memory:6s% \n %message%");
-        $progressBar->start();
+        $progressBar->start($totalFiles);
 
         foreach ($finder as $file) {
             try {

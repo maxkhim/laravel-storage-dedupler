@@ -7,6 +7,7 @@
 [![Downloads](https://img.shields.io/packagist/dt/maxkhim/laravel-storage-dedupler.svg)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
 [![License](https://img.shields.io/packagist/l/maxkhim/laravel-storage-dedupler.svg?color=007ec6&label=License)](https://packagist.org/packages/maxkhim/laravel-storage-dedupler)
 
+
 ### Stop storing duplicate files in your Laravel application.
 
 Tired of seeing the same file stored multiple times? When users upload duplicates, your storage bloats, cloud bills grow, backups take longer, and data consistency suffers.
@@ -175,6 +176,13 @@ php artisan dedupler:prune --orphan-relations --orphan-files --dry-run
 ## ❤️ Support the Project
 
 If Dedupler saved you disk space, cloud costs, or just a few hours of debugging, consider giving the repository a star ⭐. It’s the best way to show your appreciation and help other developers discover this package. Also, you can make an issue.
+
+## Featured In & Video Tutorials
+
+* 🎥 **Video Review:** [Laravel Package: Storage Dedupler to Save Disk Space](https://www.youtube.com/watch?v=Qj_ExNjOYsE) by **Laravel Daily** (Povilas Korop)
+* 📰 **Laravel News (2026):** [Prevent Duplicate File Uploads With Laravel Storage Dedupler](https://laravel-news.com/laravel-storage-dedupler)
+* 📰 **Laravel News (2025):** [Prevent Duplicate Files with the Dedupler Package for Laravel](https://laravel-news.com/prevent-duplicate-files-dedupler-package-for-laravel)
+
 
 ## 🛣️ API Reference
 

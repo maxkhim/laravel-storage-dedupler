@@ -12,6 +12,7 @@ use Maxkhim\Dedupler\FileSources\UploadedFileAdapter;
 use Maxkhim\Dedupler\Models\UniqueFile;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maxkhim\Dedupler\Models\Deduplicatable;
@@ -242,20 +243,17 @@ class DeduplerService implements FileStorageInterface
         // Сохранение через Flysystem
         Storage::disk($disk)->put($path, $content);
 
-        // Создание записи
-        return UniqueFile::query()
-            ->create([
-                'id' => $sha1Hash,
-                'sha1_hash' => $sha1Hash,
-                'md5_hash' => $md5Hash,
-                'filename' => $filename,
-                'path' => $path,
-                'mime_type' => $fileSource->getMimeType(),
-                'size' => Storage::disk($disk)->size($path),
-                'status' => 'completed',
-                'disk' => $disk,
-                'original_name' => $fileSource->getOriginalName(),
-            ]);
+        return $this->createUniqueFileWithRaceProtection($sha1Hash, [
+            'sha1_hash' => $sha1Hash,
+            'md5_hash' => $md5Hash,
+            'filename' => $filename,
+            'path' => $path,
+            'mime_type' => $fileSource->getMimeType(),
+            'size' => Storage::disk($disk)->size($path),
+            'status' => 'completed',
+            'disk' => $disk,
+            'original_name' => $fileSource->getOriginalName(),
+        ]);
     }
 
     protected function saveNewFileFromStream(
@@ -278,9 +276,7 @@ class DeduplerService implements FileStorageInterface
         $size = Storage::disk($disk)->size($path);
         $mimeType = Storage::disk($disk)->mimeType($path) ?: $fileSource->getMimeType();
 
-        // Создание записи
-        return UniqueFile::create([
-            'id' => $sha1Hash,
+        return $this->createUniqueFileWithRaceProtection($sha1Hash, [
             'sha1_hash' => $sha1Hash,
             'md5_hash' => $md5Hash,
             'filename' => basename($path),
@@ -291,6 +287,19 @@ class DeduplerService implements FileStorageInterface
             'disk' => $disk,
             'original_name' => $fileSource->getOriginalName(),
         ]);
+    }
+
+    /**
+     * Создать запись UniqueFile с обработкой race condition.
+     * При UniqueConstraintViolationException возвращает существующую запись.
+     */
+    protected function createUniqueFileWithRaceProtection(string $sha1Hash, array $attributes): UniqueFile
+    {
+        try {
+            return UniqueFile::query()->create(array_merge(['id' => $sha1Hash], $attributes));
+        } catch (UniqueConstraintViolationException $e) {
+            return UniqueFile::query()->findOrFail($sha1Hash);
+        }
     }
 
     protected function generateFilePath(FileSourceInterface $fileSource, string $hash): string
